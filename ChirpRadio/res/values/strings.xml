@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, MainMenu!</string>
     <string name="app_name">CHIRP Radio</string>
 	<string name="playlist_label">Playlist</string>
+	<string name="playlist_title">Playlist</string>	
 	<string name="request_label">Make a Request</string>
-	<string name="schedule_label">Schedule</string>
+	<string name="request_title">Make a Request</string>
+	<string name="schedule_label">On-Air Schedule</string>
+	<string name="schedule_title">On-Air Schedule</string>
 	<string name="playing_label">Now Playing</string>
+	<string name="playing_title">Now Playing</string>
 </resources>
