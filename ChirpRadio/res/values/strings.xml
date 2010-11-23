@@ -2,4 +2,8 @@
 <resources>
     <string name="hello">Hello World, MainMenu!</string>
     <string name="app_name">CHIRP Radio</string>
+	<string name="playlist_label">Playlist</string>
+	<string name="request_label">Make a Request</string>
+	<string name="schedule_label">Schedule</string>
+	<string name="playing_label">Now Playing</string>
 </resources>
