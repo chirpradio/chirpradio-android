@@ -15,3 +15,7 @@
 
 # generated GUI files
 *R.java
+
+# machine-specific build properties
+local.properties
+
