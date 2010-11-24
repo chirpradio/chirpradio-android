@@ -14,16 +14,38 @@
             <version>1.6_r2</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+        <!--
+            Since robolectric does not have a maven artifact, you must install the artifact locally.
+              (assuming the artifact is in the current directory and named robolectric-0.9.1.jar)
+                mvn install:install-file -DgroupId=com.xtremelabs  \ -DartifactId=robolectric  \
+                -Dversion=0.9.1  \
+                -Dfile=robolectric-0.9.1.jar  \
+                -Dpackaging=jar \
+                -DgeneratePom=true
+         -->
+        <dependency>
+            <groupId>com.xtremelabs</groupId>
+            <artifactId>robolectric</artifactId>
+            <version>0.9.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <finalName>${project.artifactId}</finalName>
         <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>maven-android-plugin</artifactId>
-                <version>2.6.1-SNAPSHOT</version>
+                <version>2.6.0</version>
                 <configuration>
                     <sdk>
                         <platform>3</platform>
