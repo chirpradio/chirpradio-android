@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="GlobalBackground">
+    	<item name="android:background">@color/backgroundGrey</item>
+    </style>
+    
+    <style name="ListItem">
+    	<item name="android:background">@drawable/list_item</item>
+    	<item name="android:textColor">#ffffffff</item>
+    	<item name="android:paddingBottom">10dp</item>
+		<item name="android:paddingTop">10dp</item>
+		<item name="android:paddingLeft">10dp</item>
+		<item name="android:layout_marginBottom">1dp</item>
+		<item name="android:gravity">left</item>
+    </style>
+    
+    <style name="ListItemTop" parent="@style/ListItem">
+    	<item name="android:background">@drawable/list_item_top</item>
+    </style>
+    
+    <style name="ListItemBottom" parent="@style/ListItem">
+    	<item name="android:background">@drawable/list_item_bottom</item>
+    </style>
+    
+    <style name="List">
+    	<item name="android:padding">10dp</item>
+    </style>
+</resources>

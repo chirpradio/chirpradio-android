@@ -3,34 +3,35 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    style="@style/GlobalBackground"
     >
-   
-<Button
-	android:text="@string/playing_label"
-	android:id="@+id/playing_button"
-	android:layout_width="fill_parent"
-	android:layout_height="wrap_content"
+  
+  <LinearLayout
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    style="@style/List"
+    >
+  
+	<Button
+		android:text="@string/playing_label"
+		android:id="@+id/playing_button"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		style="@style/ListItemTop"
 	/>
-    
-<Button
-	android:text="@string/playlist_label"
-	android:id="@+id/playlist_button"
-	android:layout_width="fill_parent"
-	android:layout_height="wrap_content"
-	/>
-	
-<Button
-	android:text="@string/request_label"
-	android:id="@+id/request_button"
-	android:layout_width="fill_parent"
-	android:layout_height="wrap_content"
-	/>
-	
-<Button
-	android:text="@string/schedule_label"
-	android:id="@+id/schedule_button"
-	android:layout_width="fill_parent"
-	android:layout_height="wrap_content"
-	/>
-	
+
+	<Button android:text="@string/playlist_label" android:id="@+id/playlist_button"
+		android:layout_width="fill_parent" android:layout_height="wrap_content"
+		style="@style/ListItem" />
+
+	<Button android:text="@string/request_label" android:id="@+id/request_button"
+		android:layout_width="fill_parent" android:layout_height="wrap_content"
+		style="@style/ListItem" />
+
+	<Button android:text="@string/schedule_label" android:id="@+id/schedule_button"
+		android:layout_width="fill_parent" android:layout_height="wrap_content"
+		style="@style/ListItemBottom" />
+	</LinearLayout>
+
 </LinearLayout>
