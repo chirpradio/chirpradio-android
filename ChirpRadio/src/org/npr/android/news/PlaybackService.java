@@ -201,30 +201,30 @@ public class PlaybackService extends Service implements OnPreparedListener,
     mediaPlayer.start();
     markAsRead(current.id);
 
-    int icon = R.drawable.stat_notify_musicplayer;
-    CharSequence contentText = current.title;
-    long when = System.currentTimeMillis();
-    Notification notification = new Notification(icon, contentText, when);
-    notification.flags = Notification.FLAG_NO_CLEAR
-        | Notification.FLAG_ONGOING_EVENT;
-    Context c = getApplicationContext();
-    CharSequence title = getString(R.string.app_name);
-    Intent notificationIntent;
-    if (current.storyID != null) {
-      notificationIntent = new Intent(this, NewsStoryActivity.class);
-      notificationIntent.putExtra(Constants.EXTRA_STORY_ID, current.storyID);
-      notificationIntent.putExtra(Constants.EXTRA_DESCRIPTION,
-          R.string.msg_main_subactivity_nowplaying);
-    } else {
-      notificationIntent = new Intent(this, Main.class);
-    }
-    notificationIntent.setAction(Intent.ACTION_VIEW);
-    notificationIntent.addCategory(Intent.CATEGORY_DEFAULT);
-    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    PendingIntent contentIntent = PendingIntent.getActivity(c, 0,
-        notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-    notification.setLatestEventInfo(c, title, contentText, contentIntent);
-    notificationManager.notify(NOTIFICATION_ID, notification);
+//    int icon = R.drawable.stat_notify_musicplayer;
+//    CharSequence contentText = current.title;
+//    long when = System.currentTimeMillis();
+//    Notification notification = new Notification(icon, contentText, when);
+//    notification.flags = Notification.FLAG_NO_CLEAR
+//        | Notification.FLAG_ONGOING_EVENT;
+//    Context c = getApplicationContext();
+//    CharSequence title = getString(R.string.app_name);
+//    Intent notificationIntent;
+//    if (current.storyID != null) {
+//      notificationIntent = new Intent(this, NewsStoryActivity.class);
+//      notificationIntent.putExtra(Constants.EXTRA_STORY_ID, current.storyID);
+//      notificationIntent.putExtra(Constants.EXTRA_DESCRIPTION,
+//          R.string.msg_main_subactivity_nowplaying);
+//    } else {
+//      notificationIntent = new Intent(this, Main.class);
+//    }
+//    notificationIntent.setAction(Intent.ACTION_VIEW);
+//    notificationIntent.addCategory(Intent.CATEGORY_DEFAULT);
+//    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//    PendingIntent contentIntent = PendingIntent.getActivity(c, 0,
+//        notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+//    notification.setLatestEventInfo(c, title, contentText, contentIntent);
+//    notificationManager.notify(NOTIFICATION_ID, notification);
   }
 
   synchronized public void pause() {
