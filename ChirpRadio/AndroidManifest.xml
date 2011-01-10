@@ -14,7 +14,11 @@
         </activity>
 	<activity android:name=".Playing"
 		android:label="@string/playing_title" />
+		
+		<receiver android:name=".NotificationUpdateReceiver" android:process=":remote" />
+		
     </application>
+    
     <uses-sdk android:minSdkVersion="7" />
 
 </manifest> 
