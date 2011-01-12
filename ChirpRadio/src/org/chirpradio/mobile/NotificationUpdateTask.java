@@ -12,7 +12,6 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.npr.android.news.PlaybackService;
 
 import android.text.Html;
 
