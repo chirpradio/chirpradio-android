@@ -317,7 +317,7 @@ public class PlaybackService extends Service implements OnPreparedListener,
     }
   }
 
-  @Override
+//  @Override
   public void onPrepared(MediaPlayer mp) {
     Log.d(LOG_TAG, "Prepared");
     synchronized (this) {
@@ -362,14 +362,14 @@ public class PlaybackService extends Service implements OnPreparedListener,
     }
   }
 
-  @Override
+//  @Override
   public void onBufferingUpdate(MediaPlayer arg0, int arg1) {
     // if (parent != null) {
     // parent.onBufferingUpdate(arg0, arg1);
     // }
   }
 
-  @Override
+//  @Override
   public void onCompletion(MediaPlayer mp) {
     Log.w(LOG_TAG, "onComplete()");
 
@@ -412,7 +412,7 @@ public class PlaybackService extends Service implements OnPreparedListener,
     }
   }
 
-  @Override
+//  @Override
   public boolean onError(MediaPlayer mp, int what, int extra) {
     Log.w(LOG_TAG, "onError(" + what + ", " + extra + ")");
     // if (parent != null) {
@@ -421,7 +421,7 @@ public class PlaybackService extends Service implements OnPreparedListener,
     return false;
   }
 
-  @Override
+//  @Override
   public boolean onInfo(MediaPlayer arg0, int arg1, int arg2) {
     Log.w(LOG_TAG, "onInfo(" + arg1 + ", " + arg2 + ")");
     // if (parent != null) {
