@@ -10,5 +10,18 @@
 	android:layout_width="fill_parent"
 	android:layout_height="wrap_content"
 	/>
+	    <Button
+		android:text="Play"
+		android:id="@+id/play_button"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+	/>
+	
+	    <Button
+		android:text="Stop"
+		android:id="@+id/stop_button"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+	/>
 	
 </LinearLayout>
