@@ -15,20 +15,6 @@
 package org.chirpradio.mobile;
 
 import android.util.Log;
-
-import java.io.IOException;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
-import android.text.Html;
-
 import android.os.AsyncTask;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -68,7 +54,7 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Track> {
 	
 			    CharSequence title = context.getString(R.string.app_name) + " (DJ" + " " + track.getDj()+ ")";
 			 
-			    Intent notificationIntent = new Intent(context, MainMenu.class);
+			    Intent notificationIntent = new Intent(context, Playing.class);
 			    notificationIntent.setAction(Intent.ACTION_VIEW);
 			    notificationIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
