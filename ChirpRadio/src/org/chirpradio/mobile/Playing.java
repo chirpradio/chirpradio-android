@@ -16,31 +16,48 @@ package org.chirpradio.mobile;
 
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 
-public class Playing extends Activity implements OnClickListener {
+public class Playing extends Activity implements OnClickListener, OnSeekBarChangeListener {
 
 	private static final String LOG_TAG = "PlayingActivity";
 	
     private PlaybackService mBoundService;
     private ServiceConnection mConnection;
 	private Boolean mIsBound;
+	private AudioManager audioManager;
+	
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playing);
+        
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        
         doBindService();
+        setupUICallbacks();
+    }
+    
+    private void setupUICallbacks() {
         View playButton = findViewById(R.id.play_button);
         playButton.setOnClickListener(this);
         View stopButton = findViewById(R.id.stop_button);
-        stopButton.setOnClickListener(this);        
+        stopButton.setOnClickListener(this);
+        
+        SeekBar seekBar = (SeekBar) findViewById(R.id.volume_seek_bar);
+        seekBar.setOnSeekBarChangeListener(this);
+        seekBar.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
     }
 
     void doBindService() {
@@ -89,5 +106,18 @@ public class Playing extends Activity implements OnClickListener {
 			break;
 		}
 	}
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+		int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+		int level = (int) Math.ceil(progress / 100.0 * max);
+		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, level, 0);
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar) {}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar) {}
 	
 }
