@@ -32,9 +32,9 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 
 	private static final String LOG_TAG = "PlayingActivity";
 	
-    private PlaybackService mBoundService;
-    private ServiceConnection mConnection;
-	private Boolean mIsBound;
+    private PlaybackService playbackService;
+    private ServiceConnection serviceConnection;
+	private Boolean serviceIsBound;
 	private AudioManager audioManager;
 	
 	
@@ -62,30 +62,30 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 
     void doBindService() {
     	Intent serviceIntent = new Intent(this, PlaybackService.class);
-    	mConnection = new ServiceConnection() {
+    	serviceConnection = new ServiceConnection() {
 	      @Override
 	      public void onServiceConnected(ComponentName name, IBinder service) {
-	    	  mBoundService = ((PlaybackService.PlaybackBinder) service).getService();
+	    	  playbackService = ((PlaybackService.PlaybackBinder) service).getService();
 	        Log.d(LOG_TAG, "CONNECTED");
 	      }
 
 	      @Override
 	      public void onServiceDisconnected(ComponentName name) {
 	        Log.w(LOG_TAG, "DISCONNECT");
-	        mBoundService  = null;
+	        playbackService  = null;
 	      }
 	    };
 	    getApplicationContext().startService(serviceIntent);
-	    getApplicationContext().bindService(serviceIntent, mConnection, 0);
+	    getApplicationContext().bindService(serviceIntent, serviceConnection, 0);
        
-        mIsBound = true;
+        serviceIsBound = true;
     }
 
     void doUnbindService() {
-        if (mIsBound) {
+        if (serviceIsBound) {
             // Detach our existing connection.
-            unbindService(mConnection);
-            mIsBound = false;
+            unbindService(serviceConnection);
+            serviceIsBound = false;
         }
     }
 
@@ -99,10 +99,10 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	public void onClick(View v) {
 		switch(v.getId()) {
 		case R.id.play_button:
-			mBoundService.start();
+			playbackService.start();
 			break;
 		case R.id.stop_button:
-			mBoundService.stop();
+			playbackService.stop();
 			break;
 		}
 	}
