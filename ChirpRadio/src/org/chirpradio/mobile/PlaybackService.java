@@ -104,6 +104,14 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     	setupTelephonyHooks();
     }
 
+    
+    // Start on pre-2.0 systems
+    @Override
+    public void onStart(Intent intent, int startId) {
+        Log.i(LOG_TAG, "Received start id " + startId + ": " + intent);
+    }
+
+    // Start on 2.0+ systems
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(LOG_TAG, "Received start id " + startId + ": " + intent);
