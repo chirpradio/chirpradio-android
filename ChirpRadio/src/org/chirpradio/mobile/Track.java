@@ -15,6 +15,7 @@
 package org.chirpradio.mobile;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,7 +38,7 @@ import android.util.Log;
 *
 * @author Chirag Patel
 */
-public class Track {
+public class Track implements Serializable {
 	String dj; // "Stephen Dobek"
 	String artist; // "Autre Ne Veut"
 	String track; // "Drama Cum Drama",
