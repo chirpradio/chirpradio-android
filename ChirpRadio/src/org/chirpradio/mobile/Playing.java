@@ -15,6 +15,9 @@
 package org.chirpradio.mobile;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -22,11 +25,14 @@ import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 
 public class Playing extends Activity implements OnClickListener, OnSeekBarChangeListener {
 
@@ -36,17 +42,36 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
     private ServiceConnection serviceConnection;
 	private Boolean serviceIsBound;
 	private AudioManager audioManager;
-	
+	private Button playlistButton;
+	private Track currentTrack;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playing);
+        //this.registerReceiver(this.nowPlayingReceiver, new IntentFilter(Intent.ACTION_NOW_PLAYING_CHANGED));
         
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         
         doBindService();
         setupUICallbacks();
+        
+        try {
+            Long firstTime = SystemClock.elapsedRealtime();
+            
+            // create an intent that will call NotificationUpdateReceiver
+            Intent intent  = new Intent(this, NotificationUpdateReceiver.class);
+            
+            // create the event if it does not exist
+            PendingIntent sender = PendingIntent.getBroadcast(this, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            
+            // call the receiver every 10 seconds
+            AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+            am.setRepeating(AlarmManager.ELAPSED_REALTIME, firstTime, 10000, sender);
+            
+       } catch (Exception e) {
+            Log.e("Playing", e.toString());
+       }
     }
     
     private void setupUICallbacks() {
@@ -120,4 +145,31 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	@Override
 	public void onStopTrackingTouch(SeekBar seekBar) {}
 	
+	public void updateCurrentlyPlaying(Track track) {
+		playlistButton = (Button) findViewById(R.id.playlist_button);
+		currentTrack = track;
+		playlistButton.post(new Runnable() {
+	    	public void run() {
+	    		playlistButton.setText(currentTrack.getArtist() + " - " + currentTrack.getTrack() + " from " + '"'+ currentTrack.getRelease() + '"', TextView.BufferType.NORMAL);
+	    	}
+		});
+	}
+	
+	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
+	    @Override
+	    public void onReceive(Context arg0, Intent intent) {
+	      Track track = (Track) intent.getExtras().getSerializable("track");
+	      updateCurrentlyPlaying(track);
+	    }
+	};
+	
+    public void onResume() {
+        super.onResume();
+        registerReceiver(nowPlayingReceiver, null);
+    }
+
+    public void onPause() {
+        super.onPause();
+        unregisterReceiver(nowPlayingReceiver);
+    }
 }

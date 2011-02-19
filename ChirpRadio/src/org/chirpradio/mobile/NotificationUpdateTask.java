@@ -53,14 +53,21 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Track> {
 				String notificationString = track.getArtist() + " - " + track.getTrack() + " from " + '"'+ track.getRelease() + '"';
 	
 			    CharSequence title = context.getString(R.string.app_name) + " (DJ" + " " + track.getDj()+ ")";
-			 
+			    
+			    //final String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.ACTION_NOW_PLAYING_CHANGED";
+			    //IntentFilter intentFilter = new IntentFilter(ACTION_NOW_PLAYING_CHANGED);
+			    Intent intent = new Intent(context, Playing.class);			    
+			    intent.putExtra("track", track);
+			    context.sendBroadcast(intent);
+			   			 
 			    Intent notificationIntent = new Intent(context, Playing.class);
 			    notificationIntent.setAction(Intent.ACTION_VIEW);
 			    notificationIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			    
 			    PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-			    
+
+                // TODO: Abstract this out into Track.send_notification_to_manager		    
 			    Notification notification = new Notification(icon, notificationString, when);
 			    notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT;
 			    notification.setLatestEventInfo(context, title, notificationString, contentIntent);
