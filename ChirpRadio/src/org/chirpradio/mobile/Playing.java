@@ -21,6 +21,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ import android.widget.TextView;
 public class Playing extends Activity implements OnClickListener, OnSeekBarChangeListener {
 
 	private static final String LOG_TAG = "PlayingActivity";
+	public final static String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.TRACK_CHANGED";
 	
     private PlaybackService playbackService;
     private ServiceConnection serviceConnection;
@@ -44,7 +46,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	private AudioManager audioManager;
 	private Button playlistButton;
 	private Track currentTrack;
-	
+		
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -155,7 +157,6 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		});
 	}
 
-/*
 	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
@@ -166,12 +167,11 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	
     public void onResume() {
         super.onResume();
-        registerReceiver(nowPlayingReceiver, null);
+        registerReceiver(nowPlayingReceiver, new IntentFilter(ACTION_NOW_PLAYING_CHANGED));
     }
 
     public void onPause() {
         super.onPause();
         unregisterReceiver(nowPlayingReceiver);
-    }
-*/    
+    }    
 }
