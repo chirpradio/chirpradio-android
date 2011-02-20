@@ -16,6 +16,8 @@ package org.chirpradio.mobile;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -70,6 +72,23 @@ public class Track implements Serializable {
 		this.played_at_gmt = played_at_gmt;
 		this.release = release;
 		this.played_at_local = played_at_local;
+		this.id = id;
+	}
+
+	/**
+	 * @param dj
+	 * @param artist
+	 * @param id
+	 */
+	public Track(String dj, String artist, String id) {
+		super();
+		this.dj = dj;
+		this.artist = artist;
+		this.track = "";
+		this.label = "";
+		this.played_at_gmt = null;
+		this.release = "";
+		this.played_at_local = null;
 		this.id = id;
 	}
 
@@ -162,6 +181,9 @@ public class Track implements Serializable {
 	}
 
 	private static final String LOG_TAG = NotificationUpdateTask.class.toString();
+	/*Documentation: http://code.google.com/p/chirpradio/wiki/TheChirpApi */
+	private static final String CHIRP_API_URL = "http://chirpradio.appspot.com/api/current_playlist?src=chirpradio-android";
+	private static final String CHIRP_DOMAIN = "chirpradio.appspot.com";
 
 	/** Method to return the current playing track and store it in static member. Will attempt to fetch 
 	* the track first, if it hasn't changed from the previous fetch (compares unique ID)
@@ -170,55 +192,52 @@ public class Track implements Serializable {
 	* @author Chirag Patel
 	*/
 	public static Track getCurrentTrack() {
+		Track track;
+
+		//For the first the UnknownHostException is hit but next usages of the url are successful 
+		//(DNS server returns proper IP address and able to connect to the server
+		try {
+			InetAddress i = InetAddress.getByName(CHIRP_DOMAIN);
+		} catch (UnknownHostException e) {
+			Log.e(LOG_TAG, "", e);	
+		}
 		
-		/*Documentation: http://code.google.com/p/chirpradio/wiki/TheChirpApi */
-		HttpGet get = new HttpGet("http://chirpradio.appspot.com/api/current_playlist?src=chirpradio-android");
-		DefaultHttpClient client = new DefaultHttpClient();
-		
+		HttpGet get = new HttpGet(CHIRP_API_URL);
+		DefaultHttpClient client = new DefaultHttpClient();		
 		
 		try {
 			HttpResponse response = client.execute(get);
 			String responseBody = EntityUtils.toString(response.getEntity());
 
-			// JSON response contains invalid 'comments', so strip them out
-			responseBody = responseBody
-					.replaceFirst("<!-- cached copy -->", "");
-			responseBody = responseBody.replaceFirst(
-					"<!-- end cached copy -->", "");
-			responseBody = responseBody.replaceFirst("<!-- fresh copy -->", "");
-			responseBody = responseBody.replaceFirst("<!-- end fresh copy -->",
-					"");
-
-			// Decode HTML entities
-			responseBody = Html.fromHtml(responseBody).toString();
-
 			try {
 				JSONObject json_current_playlist = (JSONObject) new JSONTokener(responseBody).nextValue();
 				JSONObject json_now_playing = json_current_playlist.getJSONObject("now_playing");
-				String json_id = json_now_playing.getString("id");
-				
-				if (current_track == null || current_track.id == null || !current_track.id.equals(json_id)) {
-				  current_track = new Track(json_now_playing);
-				  return current_track;
-				} else {
-				  return null;
-				}
+				//String json_id = json_now_playing.getString("id");
+				track = new Track(json_now_playing);
 			} catch (JSONException e) {
 				Log.e(LOG_TAG, "", e);
+				track = new Track("Error", e.toString(), e.toString());
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				Log.e(LOG_TAG, "", e);
 				e.printStackTrace();
+				track = new Track("Error", e.toString(), e.toString());
 			}
 		} catch (ClientProtocolException e) {
 			// a problem connecting or the connection was aborted
 			Log.e(LOG_TAG, "", e);
+			track = new Track("Error", e.toString(), e.toString());
 		} catch (IOException e) {
 			// an http protocol error
 			Log.e(LOG_TAG, "", e);
+			track = new Track("Error", e.toString(), e.toString());
 		}
 		
-		//FIXME: Instead of returning null, return a track with Artist,Track,Release explaining the exception
-		return null;
+		if (current_track == null || current_track.id == null || !current_track.id.equals(track.id)) {
+			current_track = track;
+			return current_track;			
+		} else {
+		  return null;
+		}
 	}
 }

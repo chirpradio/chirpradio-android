@@ -54,12 +54,14 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Track> {
 	
 			    CharSequence title = context.getString(R.string.app_name) + " (DJ" + " " + track.getDj()+ ")";
 			    
+			    /* Intent for the Playing UI */
 			    //final String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.ACTION_NOW_PLAYING_CHANGED";
 			    //IntentFilter intentFilter = new IntentFilter(ACTION_NOW_PLAYING_CHANGED);
-			    Intent intent = new Intent(context, Playing.class);			    
-			    intent.putExtra("track", track);
-			    context.sendBroadcast(intent);
-			   			 
+			    //Intent intent = new Intent(context, Playing.class);			    
+			    //intent.putExtra("track", track);
+			    //context.sendBroadcast(intent);
+			   	
+			    /* Intent for the Notification area */
 			    Intent notificationIntent = new Intent(context, Playing.class);
 			    notificationIntent.setAction(Intent.ACTION_VIEW);
 			    notificationIntent.addCategory(Intent.CATEGORY_DEFAULT);
