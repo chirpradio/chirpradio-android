@@ -157,7 +157,8 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	    	}
 		});
 	}
-	
+
+/*
 	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
@@ -175,4 +176,5 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         super.onPause();
         unregisterReceiver(nowPlayingReceiver);
     }
+*/    
 }
