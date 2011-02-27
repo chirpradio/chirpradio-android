@@ -9,4 +9,5 @@
 	<string name="schedule_title">On-Air Schedule</string>
 	<string name="playing_label">Now Playing</string>
 	<string name="playing_title">Now Playing</string>
+	<string name="current_track">Current Track</string>	
 </resources>

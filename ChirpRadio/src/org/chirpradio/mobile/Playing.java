@@ -44,8 +44,8 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
     private ServiceConnection serviceConnection;
 	private Boolean serviceIsBound;
 	private AudioManager audioManager;
-	private Button playlistButton;
 	private Track currentTrack;
+	private TextView currentTrackText;
 		
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -148,11 +148,11 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	public void onStopTrackingTouch(SeekBar seekBar) {}
 	
 	public void updateCurrentlyPlaying(Track track) {
-		playlistButton = (Button) findViewById(R.id.playlist_button);
+		currentTrackText = (TextView) findViewById(R.id.current_track);
 		currentTrack = track;
-		playlistButton.post(new Runnable() {
+		currentTrackText.post(new Runnable() {
 	    	public void run() {
-	    		playlistButton.setText(currentTrack.getArtist() + " - " + currentTrack.getTrack() + " from " + '"'+ currentTrack.getRelease() + '"', TextView.BufferType.NORMAL);
+	    		currentTrackText.setText(currentTrack.getArtist() + " - " + currentTrack.getTrack() + " from " + '"'+ currentTrack.getRelease() + '"', TextView.BufferType.NORMAL);
 	    	}
 		});
 	}
@@ -160,6 +160,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
+	      Log.i("Playing.nowPlayingReceiver", "onReceive called");	
 	      Track track = (Track) intent.getExtras().getSerializable("track");
 	      updateCurrentlyPlaying(track);
 	    }

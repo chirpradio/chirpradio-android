@@ -17,11 +17,6 @@
 		</activity>
 		
 		<receiver android:name=".NotificationUpdateReceiver" android:process=":remote" />
-		<receiver android:name=".Playing">
-			<intent-filter>
-                <action android:name="org.chirpradio.mobile.TRACK_CHANGED" />
-            </intent-filter>
-		</receiver>
 		<service android:name="org.chirpradio.mobile.PlaybackService" />
     </application>
     
