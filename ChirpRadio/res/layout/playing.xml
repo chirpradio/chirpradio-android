@@ -29,6 +29,8 @@
 		android:id="@+id/volume_seek_bar"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
+		android:progressDrawable="@drawable/red_progress_horizontal"
+		android:thumb="@drawable/red_seek_thumb"
 	/>
 	
 	<TextView 

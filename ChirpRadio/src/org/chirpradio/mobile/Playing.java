@@ -57,7 +57,21 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         
         doBindService();
         setupUICallbacks();
+        setupNotification();
+    }
+    
+    private void setupUICallbacks() {
+        View playButton = findViewById(R.id.play_button);
+        playButton.setOnClickListener(this);
+        View stopButton = findViewById(R.id.stop_button);
+        stopButton.setOnClickListener(this);
         
+        SeekBar seekBar = (SeekBar) findViewById(R.id.volume_seek_bar);
+        seekBar.setOnSeekBarChangeListener(this);
+        seekBar.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+    }
+    
+    private void setupNotification() {
         try {
             Long firstTime = SystemClock.elapsedRealtime();
             
@@ -72,19 +86,8 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
             am.setRepeating(AlarmManager.ELAPSED_REALTIME, firstTime, 10000, sender);
             
        } catch (Exception e) {
-            Log.e("Playing", e.toString());
+            Log.e(LOG_TAG, e.toString());
        }
-    }
-    
-    private void setupUICallbacks() {
-        View playButton = findViewById(R.id.play_button);
-        playButton.setOnClickListener(this);
-        View stopButton = findViewById(R.id.stop_button);
-        stopButton.setOnClickListener(this);
-        
-        SeekBar seekBar = (SeekBar) findViewById(R.id.volume_seek_bar);
-        seekBar.setOnSeekBarChangeListener(this);
-        seekBar.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
     }
 
     void doBindService() {
