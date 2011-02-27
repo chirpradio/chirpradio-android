@@ -21,6 +21,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -37,14 +38,15 @@ import android.widget.TextView;
 public class Playing extends Activity implements OnClickListener, OnSeekBarChangeListener {
 
 	private static final String LOG_TAG = "PlayingActivity";
+	public final static String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.TRACK_CHANGED";
 	
     private PlaybackService playbackService;
     private ServiceConnection serviceConnection;
 	private Boolean serviceIsBound;
 	private AudioManager audioManager;
-	private Button playlistButton;
 	private Track currentTrack;
-	
+	private TextView currentTrackText;
+		
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -149,19 +151,19 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	public void onStopTrackingTouch(SeekBar seekBar) {}
 	
 	public void updateCurrentlyPlaying(Track track) {
-		playlistButton = (Button) findViewById(R.id.playlist_button);
+		currentTrackText = (TextView) findViewById(R.id.current_track);
 		currentTrack = track;
-		playlistButton.post(new Runnable() {
+		currentTrackText.post(new Runnable() {
 	    	public void run() {
-	    		playlistButton.setText(currentTrack.getArtist() + " - " + currentTrack.getTrack() + " from " + '"'+ currentTrack.getRelease() + '"', TextView.BufferType.NORMAL);
+	    		currentTrackText.setText(currentTrack.getArtist() + " - " + currentTrack.getTrack() + " from " + '"'+ currentTrack.getRelease() + '"', TextView.BufferType.NORMAL);
 	    	}
 		});
 	}
 
-/*
 	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
+	      Log.i("Playing.nowPlayingReceiver", "onReceive called");	
 	      Track track = (Track) intent.getExtras().getSerializable("track");
 	      updateCurrentlyPlaying(track);
 	    }
@@ -169,12 +171,11 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	
     public void onResume() {
         super.onResume();
-        registerReceiver(nowPlayingReceiver, null);
+        registerReceiver(nowPlayingReceiver, new IntentFilter(ACTION_NOW_PLAYING_CHANGED));
     }
 
     public void onPause() {
         super.onPause();
         unregisterReceiver(nowPlayingReceiver);
-    }
-*/    
+    }    
 }

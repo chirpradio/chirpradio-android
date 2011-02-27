@@ -21,6 +21,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.Context;
+import android.content.IntentFilter;
 
 import org.chirpradio.mobile.Track;
 
@@ -34,7 +35,6 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Track> {
 
 	private static final String LOG_TAG = NotificationUpdateTask.class.toString();
 	private static final int NOTIFICATION_ID = 1;
-	
 	private Context context;
 	
     protected Track doInBackground(Context... contexts) {
@@ -45,7 +45,7 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Track> {
     }
 
     protected void onPostExecute(Track track) {
-	    int icon = R.drawable.icon;
+	    int icon = R.drawable.icon;	
 	    long when = System.currentTimeMillis();
 	    
 		try {
@@ -55,11 +55,11 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Track> {
 			    CharSequence title = context.getString(R.string.app_name) + " (DJ" + " " + track.getDj()+ ")";
 			    
 			    /* Intent for the Playing UI */
-			    //final String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.ACTION_NOW_PLAYING_CHANGED";
-			    //IntentFilter intentFilter = new IntentFilter(ACTION_NOW_PLAYING_CHANGED);
-			    //Intent intent = new Intent(context, Playing.class);			    
-			    //intent.putExtra("track", track);
-			    //context.sendBroadcast(intent);
+			    //IntentFilter intentFilter = new IntentFilter(Playing.ACTION_NOW_PLAYING_CHANGED);
+			    //Intent intent = new Intent(context, Playing.class);	
+			    Intent intent = new Intent(Playing.ACTION_NOW_PLAYING_CHANGED);
+			    intent.putExtra("track", track);
+			    context.sendBroadcast(intent);
 			   	
 			    /* Intent for the Notification area */
 			    Intent notificationIntent = new Intent(context, Playing.class);
