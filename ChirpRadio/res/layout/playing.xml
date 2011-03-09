@@ -33,13 +33,14 @@
 		android:thumb="@drawable/red_seek_thumb"
 	/>
 	
-	<TextView 
-		android:text="Current Track" 
-		android:id="@+id/current_track"
-		android:layout_width="match_parent" 
-		android:layout_height="wrap_content"
-		android:editable="false"
+	<View 
 		android:background="@drawable/rounded_edges"
-	/>
+		android:text="Current Track" 
+		android:textColor="#FFFFFF"
+		android:id="@+id/current_track"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"
+		android:editable="false">
+	</View>
 	
 </LinearLayout>
