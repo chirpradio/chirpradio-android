@@ -14,7 +14,12 @@
 
 package org.chirpradio.mobile;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Hashtable;
+
 import android.util.Log;
+import android.widget.TextView;
 import android.os.AsyncTask;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -31,34 +36,41 @@ import org.chirpradio.mobile.Track;
 *
 * @author Jim Benton, Chirag Patel
 */
-public class NotificationUpdateTask extends AsyncTask<Context, Void, Track> {
+public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<String, Serializable>> {
 
 	private static final String LOG_TAG = NotificationUpdateTask.class.toString();
 	private static final int NOTIFICATION_ID = 1;
 	private Context context;
 	
-    protected Track doInBackground(Context... contexts) {
+    protected Hashtable<String, Serializable> doInBackground(Context... contexts) {
 		android.os.Debug.waitForDebugger();
     	this.context = contexts[0];
-    	Track track = Track.getCurrentTrack();
-		return track;
+    	Hashtable<String, Serializable> current_playlist = Track.getCurrentPlaylist();
+		return current_playlist;
     }
 
-    protected void onPostExecute(Track track) {
+    protected void onPostExecute(Hashtable<String, Serializable> current_playlist) {
 	    int icon = R.drawable.icon;	
 	    long when = System.currentTimeMillis();
 	    
 		try {
-			if (track != null) {
-				String notificationString = track.getArtist() + " - " + track.getTrack() + " from " + '"'+ track.getRelease() + '"';
+			if ((Integer)current_playlist.get("attempts") == 1) {
+				Track now_playing = (Track)current_playlist.get("now_playing");
+				
+				String notificationString = now_playing.getArtist() + " - " + now_playing.getTrack() + " from " + '"'+ now_playing.getRelease() + '"';
 	
-			    CharSequence title = context.getString(R.string.app_name) + " (DJ" + " " + track.getDj()+ ")";
+			    CharSequence title = context.getString(R.string.app_name) + " (DJ" + " " + now_playing.getDj()+ ")";
 			    
 			    /* Intent for the Playing UI */
 			    //IntentFilter intentFilter = new IntentFilter(Playing.ACTION_NOW_PLAYING_CHANGED);
 			    //Intent intent = new Intent(context, Playing.class);	
 			    Intent intent = new Intent(Playing.ACTION_NOW_PLAYING_CHANGED);
-			    intent.putExtra("track", track);
+			    intent.putExtra("now_playing", now_playing);
+				ArrayList<Track> recently_played = (ArrayList<Track>)current_playlist.get("recently_played");
+				for (int i = 0; i < 3; ++i) {
+				    intent.putExtra("recently_played"+String.valueOf(i), recently_played.get(i));			
+		    	}
+
 			    context.sendBroadcast(intent);
 			   	
 			    /* Intent for the Notification area */

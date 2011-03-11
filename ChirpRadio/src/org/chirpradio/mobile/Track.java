@@ -14,24 +14,24 @@
 
 package org.chirpradio.mobile;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import android.text.Html;
 import android.util.Log;
 
 /** Encapsulates a track (song). Includes constructors to create an object including from
@@ -41,6 +41,8 @@ import android.util.Log;
 * @author Chirag Patel
 */
 public class Track implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 	String dj; // "Stephen Dobek"
 	String artist; // "Autre Ne Veut"
 	String track; // "Drama Cum Drama",
@@ -50,7 +52,7 @@ public class Track implements Serializable {
 	Date played_at_local; // "2011-01-09T12:04:53.906564-06:00",
 	String id; // "agpjaGlycHJhZGlvchYLEg1QbGF5bGlzdEV2ZW50GMbqhQMM"
 
-	static Track current_track; 
+	static Hashtable<String, Serializable> hashtable = new Hashtable<String, Serializable>();
 	/**
 	 * @param dj
 	 * @param artist
@@ -190,10 +192,9 @@ public class Track implements Serializable {
 	* 
 	* @return the current track. Returns null if it hasn't changed
 	* @author Chirag Patel
+	 * @param attempts 
 	*/
-	public static Track getCurrentTrack() {
-		Track track;
-
+	public static Hashtable<String, Serializable> getCurrentPlaylist() {		
 		//For the first the UnknownHostException is hit but next usages of the url are successful 
 		//(DNS server returns proper IP address and able to connect to the server
 		try {
@@ -209,35 +210,33 @@ public class Track implements Serializable {
 			HttpResponse response = client.execute(get);
 			String responseBody = EntityUtils.toString(response.getEntity());
 
-			try {
-				JSONObject json_current_playlist = (JSONObject) new JSONTokener(responseBody).nextValue();
-				JSONObject json_now_playing = json_current_playlist.getJSONObject("now_playing");
-				//String json_id = json_now_playing.getString("id");
-				track = new Track(json_now_playing);
-			} catch (JSONException e) {
-				Log.e(LOG_TAG, "", e);
-				track = new Track("Error", e.toString(), e.toString());
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				Log.e(LOG_TAG, "", e);
-				e.printStackTrace();
-				track = new Track("Error", e.toString(), e.toString());
+			JSONObject json_current_playlist = (JSONObject) new JSONTokener(responseBody).nextValue();
+			JSONObject json_now_playing = json_current_playlist.getJSONObject("now_playing");
+			String json_id = json_now_playing.getString("id");
+
+			Integer attempts = (Integer) hashtable.get("attempts");
+			Track now_playing = (Track) hashtable.get("now_playing");
+			
+			if (now_playing == null || now_playing.id == null || !now_playing.id.equals(json_id)) {
+				hashtable.put("attempts", 1);
+				hashtable.put("now_playing", new Track(json_now_playing));
+				JSONArray json_array_recently_played = json_current_playlist.getJSONArray("recently_played");
+				ArrayList<Track> array_recently_played = new ArrayList<Track>();
+
+				for (int i = 0; i < json_array_recently_played.length(); ++i) {
+					JSONObject json_recently_played = json_array_recently_played.getJSONObject(i);
+					array_recently_played.add(new Track(json_recently_played));
+				}
+				hashtable.put("recently_played", array_recently_played);
+			} else {
+			  hashtable.put("attempts", attempts + 1);	
 			}
-		} catch (ClientProtocolException e) {
-			// a problem connecting or the connection was aborted
+		} catch (Exception e) {
 			Log.e(LOG_TAG, "", e);
-			track = new Track("Error", e.toString(), e.toString());
-		} catch (IOException e) {
-			// an http protocol error
-			Log.e(LOG_TAG, "", e);
-			track = new Track("Error", e.toString(), e.toString());
+			hashtable.put("exception", e);
+			//track = new Track("Error", e.toString(), e.toString());
 		}
 		
-		if (current_track == null || current_track.id == null || !current_track.id.equals(track.id)) {
-			current_track = track;
-			return current_track;			
-		} else {
-		  return null;
-		}
+		return hashtable;
 	}
 }
