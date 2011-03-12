@@ -157,7 +157,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	
 	public void updateCurrentlyPlaying(ArrayList<Track> _tracks_to_display) {
 		tracks_to_display = _tracks_to_display;
-
+		
 		currentTrackText = (TextView) findViewById(R.id.current_track);		
 		
 		currentTrackText.post(new Runnable() {
@@ -168,7 +168,13 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 					allTracks += track.getArtist() + " - " + track.getTrack() + " from " + 
 		    				'"'+ track.getRelease() + '"' + "\n\n";				
 		    	}
-	    		currentTrackText.setText(allTracks, TextView.BufferType.NORMAL);	    		
+				//setContentView(R.layout.playing);
+								
+				//View rounded_area = (View) findViewById(R.id.current_track);
+				//TextView tv1 = new TextView(rounded_area);
+				currentTrackText.setText(allTracks, TextView.BufferType.NORMAL);	  
+
+				//rounded_area.addView(tv1);
 	    	}
 		});
 	}
