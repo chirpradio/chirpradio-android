@@ -234,7 +234,8 @@ public class Track implements Serializable {
 		} catch (Exception e) {
 			Log.e(LOG_TAG, "", e);
 			hashtable.put("exception", e);
-			//track = new Track("Error", e.toString(), e.toString());
+			Track track = new Track("Error", e.toString(), e.toString());
+			hashtable.put("now_playing", track);
 		}
 		
 		return hashtable;
