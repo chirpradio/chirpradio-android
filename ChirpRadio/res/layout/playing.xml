@@ -33,7 +33,7 @@
 		android:thumb="@drawable/red_seek_thumb"
 	/>
 	
-	<TextView 
+	<TextView
 		android:background="@drawable/rounded_edges"
 		android:id="@+id/now_playing"
 		android.textColor="FFFFFF"
@@ -41,6 +41,30 @@
 		android:layout_height="wrap_content"
 		android:layout_margin="5dip"
 		android:editable="false">
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		    android:orientation="vertical"
+		    android:layout_width="fill_parent"
+		    android:layout_height="fill_parent"
+		    android:layout_weight="1"
+    	>
+			<TextView 
+				android:background="@drawable/rounded_edges"
+				android:id="@+id/now_playing_header"
+				android.textColor="FCFC77"
+				android.text="NOW PLAYING"			
+				android:layout_width="fill_parent" 
+				android:layout_height="wrap_content"
+				android:editable="false">
+			</TextView>		
+			<TextView 
+				android:background="@drawable/rounded_edges"
+				android:id="@+id/now_playing_track"
+				android.textColor="FFFFFF"
+				android:layout_width="fill_parent" 
+				android:layout_height="wrap_content"
+				android:editable="false">
+			</TextView>
+		</LinearLayout>
 	</TextView>
 		
 	<TextView 
