@@ -62,7 +62,7 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<S
 				String title_string = context.getString(R.string.app_name) + " (";
 				String dj_string = now_playing.getDj(); 			
 
-				if (!(dj_string.toLowerCase().charAt(0) == 'd' && dj_string.toLowerCase().charAt(0) == 'j') && !dj_string.equals("Error")) {
+				if (!(dj_string.toLowerCase().charAt(0) == 'd' && dj_string.toLowerCase().charAt(1) == 'j') && !dj_string.equals("Error")) {
 					title_string += "DJ ";
 				}
 				
