@@ -7,7 +7,7 @@
 	<string name="request_title">Make a Request</string>
 	<string name="schedule_label">On-Air Schedule</string>
 	<string name="schedule_title">On-Air Schedule</string>
-	<string name="playing_label">Now Playing</string>
-	<string name="playing_title">Now Playing</string>
+	<string name="playing_label">CHIRP Radio</string>
+	<string name="playing_title">CHIRP Radio</string>
 	<string name="current_track">Current Track</string>	
 </resources>

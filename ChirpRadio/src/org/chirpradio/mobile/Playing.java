@@ -33,6 +33,7 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -162,26 +163,31 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		nowPlayingText = (TextView) findViewById(R.id.now_playing);		
 		nowPlayingText.post(new Runnable() {
 	    	public void run() {
-	    		String allTracks = new String();
-
-				allTracks += now_playing.getArtist() + " - " + now_playing.getTrack() + " from " + 
-		    				'"'+ now_playing.getRelease() + '"' + "\n\n";				
-
-				nowPlayingText.setText(allTracks, TextView.BufferType.NORMAL);	  	    	}
+	    		String now_playing_string = new String();
+	    		now_playing_string += "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " + now_playing.getDj() + "<br><br><hr>";
+	    		now_playing_string += "<b>" + now_playing.getArtist() + "</b>" + " - " + now_playing.getTrack() + " <i>from " + 
+	    			now_playing.getRelease() + " (" + now_playing.getLabel() + ")" + "</i>";				
+	    		nowPlayingText.setText(Html.fromHtml(now_playing_string));	  	    	
+			}
 		});
 		
 		recently_played = _recently_played;
 		recentlyPlayedText = (TextView) findViewById(R.id.recently_played);		
 		recentlyPlayedText.post(new Runnable() {
 	    	public void run() {
-	    		String allTracks = new String();
+	    		String recently_played_string = new String();
+	    		recently_played_string += "<font color=#FCFC77>RECENTLY PLAYED</font>" + "<br>";
+
 				for (int i = 0; i < recently_played.size(); ++i) {
 					Track track = recently_played.get(i);
-					allTracks += track.getArtist() + " - " + track.getTrack() + " from " + 
-		    				'"'+ track.getRelease() + '"' + "\n\n";				
+					recently_played_string += "<b>" + track.getArtist() + "</b>" + " - " + track.getTrack() + " <i>from " + 
+		    			track.getRelease() + " (" + track.getLabel() + ")" + "</i>";				
+					if (i < recently_played.size()-1) {
+						recently_played_string += "<br><br><hr>";
+					}						
 		    	}
-
-				recentlyPlayedText.setText(allTracks, TextView.BufferType.NORMAL);	  	    	}
+				recentlyPlayedText.setText(Html.fromHtml(recently_played_string));	  	    	
+			}
 		});
 	}
 

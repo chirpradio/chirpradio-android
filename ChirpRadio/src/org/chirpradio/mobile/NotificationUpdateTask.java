@@ -58,9 +58,16 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<S
 				Track now_playing = (Track)current_playlist.get("now_playing");
 				
 				String notificationString = now_playing.getArtist() + " - " + now_playing.getTrack() + " from " + '"'+ now_playing.getRelease() + '"';
-	
-			    CharSequence title = context.getString(R.string.app_name) + " (DJ" + " " + now_playing.getDj()+ ")";
-			    
+				
+				String title_string = context.getString(R.string.app_name) + " (";
+				String dj_string = now_playing.getDj(); 			
+
+				if (!(dj_string.toLowerCase().charAt(0) == 'd' && dj_string.toLowerCase().charAt(0) == 'j') && !dj_string.equals("Error")) {
+					title_string += "DJ ";
+				}
+				
+				title_string += dj_string+ ")";
+				CharSequence title = title_string;
 			    /* Intent for the Playing UI */
 			    //IntentFilter intentFilter = new IntentFilter(Playing.ACTION_NOW_PLAYING_CHANGED);
 			    //Intent intent = new Intent(context, Playing.class);	
