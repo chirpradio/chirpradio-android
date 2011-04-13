@@ -130,18 +130,19 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 	
 	public synchronized void start() {
 		if (isStopping) {
+			Log.d(LOG_TAG, "still stopping");
 			return;
 		}
-		if (!isPrepared) {
+		if (isPrepared) {
+			Log.d(LOG_TAG, "start");
+			mediaPlayer.start();
+		} else {
 			Log.d(LOG_TAG, "start, but not prepared");
 			if (streamProxy != null) {
     	        streamProxy.start();
 			}
 			mediaPlayer.prepareAsync();
 			return;
-		} else {
-			Log.d(LOG_TAG, "start");
-			mediaPlayer.start();			
 		}
 	}
 	

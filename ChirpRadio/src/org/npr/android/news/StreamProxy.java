@@ -54,6 +54,7 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.StringTokenizer;
@@ -89,7 +90,7 @@ public class StreamProxy implements Runnable {
     if (socket == null) {
       throw new IllegalStateException("Cannot start proxy; it has not been initialized.");
     }
-    
+    isRunning = true;
     thread = new Thread(this);
     thread.start();
   }
@@ -123,6 +124,7 @@ public class StreamProxy implements Runnable {
         processRequest(request, client);
       } catch (SocketTimeoutException e) {
         // Do nothing
+    	  Log.e(LOG_TAG, "Socket timeout", e);
       } catch (IOException e) {
         Log.e(LOG_TAG, "Error connecting to client", e);
       }
@@ -205,8 +207,16 @@ public class StreamProxy implements Runnable {
     
     httpString.append("\n");
     for (Header h : response.getAllHeaders()) {
-      httpString.append(h.getName()).append(": ").append(h.getValue()).append(
-          "\n");
+    	String name = h.getName();
+    	if (name == "Content-Length") {
+    		// Live365 returns a content length of over 400 MB,
+    		// so we'll replace it with 1 MB to prevent the MediaPlayer
+    		// from buffering forever.
+//    		httpString.append(name).append(": ").append("1048576").append("\n");
+    	} else {
+    		httpString.append(name).append(": ").append(h.getValue()).append("\n");	
+    	}
+      
     }
     httpString.append("\n");
     Log.d(LOG_TAG, "headers done");
@@ -222,6 +232,10 @@ public class StreamProxy implements Runnable {
       while (isRunning && (readBytes = data.read(buff, 0, buff.length)) != -1) {
         client.getOutputStream().write(buff, 0, readBytes);
       }
+    } catch (SocketException e) {
+  	  // Broken pipes can result from stopping the player, so
+  	  // we'll ignore the error.
+//  	  Log.e(LOG_TAG, "Broken pipe!", e);  
     } catch (Exception e) {
       Log.e("", e.getMessage(), e);
     } finally {
