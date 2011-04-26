@@ -32,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import android.text.format.DateUtils;
 import android.util.Log;
 
 /** Encapsulates a track (song). Includes constructors to create an object including from
@@ -112,7 +113,15 @@ public class Track implements Serializable {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSSSS"); // "2011-01-09T18:04:53.906564"
 		this.played_at_gmt = dateFormat.parse(json_track.getString("played_at_gmt")); 
 		this.release = json_track.getString("release");
-		dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSSSSZ"); // "2011-01-09T12:04:53.906564-06:00"
+		
+		//DateTimeFormatter parser2 = ISODateTimeFormat.dateTimeNoMillis();
+		//String jtdate = "2010-01-01T12:00:00+01:00";
+		//System.out.println(parser2.parseDateTime(jtdate));
+		
+		//String pattern = DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.getPattern();
+		//Date d = DateUtils.parseDate(json_track.getString("played_at_gmt"), new String[] { pattern });
+		
+		dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ"); // "2011-01-09T12:04:53.906564-06:00"
 		//FIXME: played_at_local show up as "Sat Jan 29 21:08:43 America/Chicago 2011". Time is correctly shown as GMT but "America/Chicago" is not.
 		this.played_at_local = dateFormat.parse(json_track.getString("played_at_local"));
 		this.id = json_track.getString("id");

@@ -37,7 +37,16 @@
 		android:layout_margin="5dip"
 		android:editable="false">
 	</TextView>
-		
+
+	<TextView 
+		android:id="@+id/played_at"
+		android.textColor="FFFFFF"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"
+		android:layout_margin="5dip"
+		android:editable="false">
+	</TextView>	
+			
 	<TextView 
 		android:background="@drawable/rounded_edges"
 		android:id="@+id/recently_played"
@@ -47,5 +56,4 @@
 		android:layout_margin="5dip"
 		android:editable="false">
 	</TextView>
-	
 </LinearLayout>

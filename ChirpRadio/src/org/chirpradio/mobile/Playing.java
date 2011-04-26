@@ -54,11 +54,23 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	Track now_playing;
 	private TextView nowPlayingText;
 	private TextView recentlyPlayedText;
-		
+	private TextView playedAt;
+	
+	private String recently_played_string = new String();
+	private String now_playing_string = new String();
+
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playing);
+        
+		nowPlayingText = (TextView) findViewById(R.id.now_playing);	
+		recentlyPlayedText = (TextView) findViewById(R.id.recently_played);	
+		now_playing_string += "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " + now_playing.getDj() + "<br><br><hr>" + "Loading...";
+		nowPlayingText.setText(Html.fromHtml(now_playing_string));	 
+		recently_played_string += "<font color=#FCFC77>RECENTLY PLAYED</font>" + "<br>" + "Loading...";
+		recentlyPlayedText.setText(Html.fromHtml(recently_played_string));	  
         //this.registerReceiver(this.nowPlayingReceiver, new IntentFilter(Intent.ACTION_NOW_PLAYING_CHANGED));
         
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -66,6 +78,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         doBindService();
         setupUICallbacks();
         setupNotification();
+        
     }
     
     private void setupUICallbacks() {
@@ -160,22 +173,23 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	
 	public void updateCurrentlyPlaying(ArrayList<Track> _recently_played, Track _now_playing) {
 		now_playing = _now_playing;		
-		nowPlayingText = (TextView) findViewById(R.id.now_playing);		
+		nowPlayingText = (TextView) findViewById(R.id.now_playing);	
+		playedAt = (TextView) findViewById(R.id.played_at);		
+
 		nowPlayingText.post(new Runnable() {
 	    	public void run() {
-	    		String now_playing_string = new String();
 	    		now_playing_string += "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " + now_playing.getDj() + "<br><br><hr>";
 	    		now_playing_string += "<b>" + now_playing.getArtist() + "</b>" + " - " + now_playing.getTrack() + " <i>from " + 
 	    			now_playing.getRelease() + " (" + now_playing.getLabel() + ")" + "</i>";				
-	    		nowPlayingText.setText(Html.fromHtml(now_playing_string));	  	    	
+	    		nowPlayingText.setText(Html.fromHtml(now_playing_string));	 
+	    		playedAt.setText(now_playing.getPlayed_at_local().toString());
 			}
 		});
 		
 		recently_played = _recently_played;
 		recentlyPlayedText = (TextView) findViewById(R.id.recently_played);		
 		recentlyPlayedText.post(new Runnable() {
-	    	public void run() {
-	    		String recently_played_string = new String();
+	    	public void run() {	    		
 	    		recently_played_string += "<font color=#FCFC77>RECENTLY PLAYED</font>" + "<br>";
 
 				for (int i = 0; i < recently_played.size(); ++i) {
