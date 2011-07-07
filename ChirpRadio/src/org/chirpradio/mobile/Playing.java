@@ -14,12 +14,7 @@
 
 package org.chirpradio.mobile;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Hashtable;
-
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -41,7 +36,7 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
-public class Playing extends Activity implements OnClickListener, OnSeekBarChangeListener {
+public class Playing extends Activity implements OnClickListener, OnSeekBarChangeListener, OnPlaybackStartedListener, OnPlaybackStoppedListener {
 
 	private static final String LOG_TAG = "PlayingActivity";
 	public final static String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.TRACK_CHANGED";
@@ -65,20 +60,13 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playing);
         
-		nowPlayingText = (TextView) findViewById(R.id.now_playing);	
-		recentlyPlayedText = (TextView) findViewById(R.id.recently_played);	
-		now_playing_string += "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " + now_playing.getDj() + "<br><br><hr>" + "Loading...";
-		nowPlayingText.setText(Html.fromHtml(now_playing_string));	 
-		recently_played_string += "<font color=#FCFC77>RECENTLY PLAYED</font>" + "<br>" + "Loading...";
-		recentlyPlayedText.setText(Html.fromHtml(recently_played_string));	  
-        //this.registerReceiver(this.nowPlayingReceiver, new IntentFilter(Intent.ACTION_NOW_PLAYING_CHANGED));
-        
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        setAudioLevel(80);
         
         doBindService();
         setupUICallbacks();
         setupNotification();
-        
+        findViewById(R.id.stop_button).setEnabled(false);
     }
     
     private void setupUICallbacks() {
@@ -89,7 +77,10 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         
         SeekBar seekBar = (SeekBar) findViewById(R.id.volume_seek_bar);
         seekBar.setOnSeekBarChangeListener(this);
-        seekBar.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+        int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int progress = (int) Math.ceil(volume * 100.0 / max);
+        seekBar.setProgress(progress);
     }
     
     private void setupNotification() {
@@ -111,19 +102,26 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
        }
     }
 
+    private void setupPlaybackListeners() {
+        playbackService.setOnPlaybackStartedListener(this);
+        playbackService.setOnPlaybackStoppedListener(this);	
+    }
+    
     void doBindService() {
+    	
     	Intent serviceIntent = new Intent(this, PlaybackService.class);
     	serviceConnection = new ServiceConnection() {
 	      @Override
 	      public void onServiceConnected(ComponentName name, IBinder service) {
 	    	  playbackService = ((PlaybackService.PlaybackBinder) service).getService();
 	        Log.d(LOG_TAG, "CONNECTED");
+	        setupPlaybackListeners();
 	      }
 
 	      @Override
 	      public void onServiceDisconnected(ComponentName name) {
 	        Log.w(LOG_TAG, "DISCONNECT");
-	        playbackService  = null;
+	        playbackService = null;
 	      }
 	    };
 	    getApplicationContext().startService(serviceIntent);
@@ -151,18 +149,24 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		switch(v.getId()) {
 		case R.id.play_button:
 			playbackService.start();
+			v.setEnabled(false);
 			break;
 		case R.id.stop_button:
 			playbackService.stop();
+			v.setEnabled(false);
 			break;
 		}
 	}
 
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+		setAudioLevel(progress);
+	}
+	
+	private void setAudioLevel(int level) {
 		int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-		int level = (int) Math.ceil(progress / 100.0 * max);
-		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, level, 0);
+		int volume = (int) Math.ceil(level / 100.0 * max);
+		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
 	}
 
 	@Override
@@ -223,8 +227,29 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         registerReceiver(nowPlayingReceiver, new IntentFilter(ACTION_NOW_PLAYING_CHANGED));
     }
 
+    
     public void onPause() {
         super.onPause();
         unregisterReceiver(nowPlayingReceiver);
-    }    
+    }
+
+	@Override
+	public void onPlaybackStopped() {
+		runOnUiThread(new Runnable() {
+		    public void run() {
+				findViewById(R.id.play_button).setEnabled(true);
+				Log.i(LOG_TAG, "playback stopped");
+		    }
+		});
+	}
+
+	@Override
+	public void onPlaybackStarted() {
+		runOnUiThread(new Runnable() {
+		    public void run() {
+		    	findViewById(R.id.stop_button).setEnabled(true);
+				Log.i(LOG_TAG, "playback started");
+		    }
+		});
+	}    
 }

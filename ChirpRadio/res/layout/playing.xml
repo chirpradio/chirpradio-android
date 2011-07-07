@@ -3,22 +3,31 @@
     android:orientation="vertical"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/background"    
+    android:background="@drawable/background"   
+    android:paddingTop="120dip" 
     >
 	
-	<Button
-		android:text="Play"
-		android:id="@+id/play_button"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-	/>
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    >
+		<Button
+			android:text="Play"
+			android:id="@+id/play_button"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+		/>
 	
-	<Button
-		android:text="Stop"
-		android:id="@+id/stop_button"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-	/>
+		<Button
+			android:text="Stop"
+			android:id="@+id/stop_button"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+		/>
+	</LinearLayout>
 	
 	<SeekBar
 		android:id="@+id/volume_seek_bar"
@@ -26,6 +35,7 @@
 		android:layout_height="wrap_content"
 		android:progressDrawable="@drawable/red_progress_horizontal"
 		android:thumb="@drawable/red_seek_thumb"
+		android:layout_margin="5dip"
 	/>
 	
 	<TextView 

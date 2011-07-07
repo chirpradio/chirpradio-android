@@ -192,6 +192,9 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 
 	@Override
 	public void onCompletion(MediaPlayer mp) {
+		if (onPlaybackStoppedListener != null) {
+			onPlaybackStoppedListener.onPlaybackStopped();
+		}
 		Log.d(LOG_TAG, "onCompletion");
 		isPrepared = false;
 		isPlaying = false;
