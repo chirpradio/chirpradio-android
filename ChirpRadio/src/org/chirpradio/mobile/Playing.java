@@ -45,16 +45,12 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
     private ServiceConnection serviceConnection;
 	private Boolean serviceIsBound;
 	private AudioManager audioManager;
-	ArrayList<Track> recently_played;
-	Track now_playing;
-	private TextView nowPlayingText;
-	private TextView recentlyPlayedText;
-	private TextView playedAt;
-	
-	private String recently_played_string = new String();
-	private String now_playing_string = new String();
+	ArrayList<Track> recentTracks;
+	Track currentTrack;
+	private TextView nowPlayingTextView;
+	private TextView recentlyPlayedTextView;
+	private TextView playedAtTextView;
 
-	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +63,10 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         setupUICallbacks();
         setupNotification();
         findViewById(R.id.stop_button).setEnabled(false);
+        
+		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
+		playedAtTextView = (TextView) findViewById(R.id.played_at);
+		recentlyPlayedTextView = (TextView) findViewById(R.id.recently_played);
     }
     
     private void setupUICallbacks() {
@@ -175,36 +175,37 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	@Override
 	public void onStopTrackingTouch(SeekBar seekBar) {}
 	
-	public void updateCurrentlyPlaying(ArrayList<Track> _recently_played, Track _now_playing) {
-		now_playing = _now_playing;		
-		nowPlayingText = (TextView) findViewById(R.id.now_playing);	
-		playedAt = (TextView) findViewById(R.id.played_at);		
+	public void updateCurrentlyPlaying() {
+		
 
-		nowPlayingText.post(new Runnable() {
+		final String nowPlayingContent = "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " +
+										 currentTrack.getDj() + "<br><br><hr>" + "<b>" + currentTrack.getArtist() + "</b>" +
+										 " - " + currentTrack.getTrack() + " <i>from " + currentTrack.getRelease() + " (" +
+										 currentTrack.getLabel() + ")" + "</i>";
+		
+		nowPlayingTextView.post(new Runnable() {
 	    	public void run() {
-	    		now_playing_string += "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " + now_playing.getDj() + "<br><br><hr>";
-	    		now_playing_string += "<b>" + now_playing.getArtist() + "</b>" + " - " + now_playing.getTrack() + " <i>from " + 
-	    			now_playing.getRelease() + " (" + now_playing.getLabel() + ")" + "</i>";				
-	    		nowPlayingText.setText(Html.fromHtml(now_playing_string));	 
-	    		playedAt.setText(now_playing.getPlayed_at_local().toString());
+	    		nowPlayingTextView.setText(Html.fromHtml(nowPlayingContent));	 
+//	    		playedAt.setText(now_playing.getPlayed_at_local().toString());
 			}
 		});
 		
-		recently_played = _recently_played;
-		recentlyPlayedText = (TextView) findViewById(R.id.recently_played);		
-		recentlyPlayedText.post(new Runnable() {
-	    	public void run() {	    		
-	    		recently_played_string += "<font color=#FCFC77>RECENTLY PLAYED</font>" + "<br>";
+		String recentlyPlayedContent = "<font color=#FCFC77>RECENTLY PLAYED</font>" + "<br>";
 
-				for (int i = 0; i < recently_played.size(); ++i) {
-					Track track = recently_played.get(i);
-					recently_played_string += "<b>" + track.getArtist() + "</b>" + " - " + track.getTrack() + " <i>from " + 
-		    			track.getRelease() + " (" + track.getLabel() + ")" + "</i>";				
-					if (i < recently_played.size()-1) {
-						recently_played_string += "<br><br><hr>";
-					}						
-		    	}
-				recentlyPlayedText.setText(Html.fromHtml(recently_played_string));	  	    	
+		for (int i = 0; i < recentTracks.size(); ++i) {
+			Track recentTrack = recentTracks.get(i);
+			recentlyPlayedContent += "<b>" + recentTrack.getArtist() + "</b>" + " - " + recentTrack.getTrack() + " <i>from " + 
+			recentTrack.getRelease() + " (" + recentTrack.getLabel() + ")" + "</i>";				
+			if (i < recentTracks.size()-1) {
+				recentlyPlayedContent += "<br><br><hr>";
+			}						
+    	}
+		
+		final String finalRecentlyPlayedContent = recentlyPlayedContent;
+		
+		recentlyPlayedTextView.post(new Runnable() {
+	    	public void run() {	    		
+				recentlyPlayedTextView.setText(Html.fromHtml(finalRecentlyPlayedContent));	  	    	
 			}
 		});
 	}
@@ -213,12 +214,12 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
 	      Log.i("Playing.nowPlayingReceiver", "onReceive called");	
-	      ArrayList<Track> recently_played = new ArrayList<Track>();;
-	      Track now_playing = (Track) intent.getExtras().getSerializable("now_playing");
+	      recentTracks = new ArrayList<Track>();;
+	      currentTrack = (Track) intent.getExtras().getSerializable("now_playing");
 		  for (int i = 0; i < 3; ++i) {
-			  recently_played.add((Track)intent.getExtras().getSerializable("recently_played"+String.valueOf(i)));
+			  recentTracks.add((Track)intent.getExtras().getSerializable("recently_played"+String.valueOf(i)));
 		  }
-	      updateCurrentlyPlaying(recently_played, now_playing);
+	      updateCurrentlyPlaying();
 	    }
 	};
 	
