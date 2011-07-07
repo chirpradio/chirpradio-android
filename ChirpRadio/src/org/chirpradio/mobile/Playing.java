@@ -239,6 +239,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		runOnUiThread(new Runnable() {
 		    public void run() {
 				findViewById(R.id.play_button).setEnabled(true);
+				findViewById(R.id.stop_button).setEnabled(false);
 				Log.i(LOG_TAG, "playback stopped");
 		    }
 		});
