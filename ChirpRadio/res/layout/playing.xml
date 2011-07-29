@@ -48,14 +48,14 @@
 		android:editable="false">
 	</TextView>
 
-	<TextView 
+	<!--TextView 
 		android:id="@+id/played_at"
 		android.textColor="FFFFFF"
 		android:layout_width="fill_parent" 
 		android:layout_height="wrap_content"
 		android:layout_margin="5dip"
 		android:editable="false">
-	</TextView>	
+	</TextView-->	
 			
 	<TextView 
 		android:background="@drawable/rounded_edges"

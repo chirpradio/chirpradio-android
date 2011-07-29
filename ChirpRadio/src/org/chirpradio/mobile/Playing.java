@@ -49,7 +49,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	Track currentTrack;
 	private TextView nowPlayingTextView;
 	private TextView recentlyPlayedTextView;
-	private TextView playedAtTextView;
+	//private TextView playedAtTextView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -65,7 +65,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         findViewById(R.id.stop_button).setEnabled(false);
         
 		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
-		playedAtTextView = (TextView) findViewById(R.id.played_at);
+		//playedAtTextView = (TextView) findViewById(R.id.played_at);
 		recentlyPlayedTextView = (TextView) findViewById(R.id.recently_played);
     }
     

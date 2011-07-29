@@ -42,6 +42,10 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<S
 	private static final int NOTIFICATION_ID = 1;
 	private Context context;
 	
+	/** doInBackground() = invoked on the background thread immediately after onPreExecute() finishes executing. 
+	* This step is used to perform background computation that can take a long time. The parameters of the 
+	* asynchronous task are passed to this step
+	*/
     protected Hashtable<String, Serializable> doInBackground(Context... contexts) {
 		android.os.Debug.waitForDebugger();
     	this.context = contexts[0];
@@ -49,12 +53,15 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<S
 		return current_playlist;
     }
 
+    /** onPostExecute() - invoked on the UI thread after the background computation finishes. The result 
+     * of the background computation is passed to this step as a parameter.
+     */
     protected void onPostExecute(Hashtable<String, Serializable> current_playlist) {
 	    int icon = R.drawable.icon;	
 	    long when = System.currentTimeMillis();
 	    
 		try {
-			if ((Integer)current_playlist.get("attempts") == 1) {
+			if (current_playlist != null && (Integer)current_playlist.get("attempts") == 1) {
 				Track now_playing = (Track)current_playlist.get("now_playing");
 				
 				String notificationString = now_playing.getArtist() + " - " + now_playing.getTrack() + " from " + '"'+ now_playing.getRelease() + '"';
