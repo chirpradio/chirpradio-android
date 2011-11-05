@@ -34,6 +34,8 @@ import android.view.View.OnClickListener;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import android.app.NotificationManager;
+import android.app.Notification;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -136,10 +138,33 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
             // call the receiver every 10 seconds
             AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
             am.setRepeating(AlarmManager.ELAPSED_REALTIME, firstTime, 10000, sender);
+
+            
             
        } catch (Exception e) {
             Debug.log(this, e.toString());
        }
+    }
+
+    private static final int HELLO_ID = 1;
+    private void setNotification(String title, String message) {
+        String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+        CharSequence tickerText = message;
+        long when = System.currentTimeMillis();
+
+        int icon = R.drawable.icon;
+        Notification notification = new Notification(icon, tickerText, when);
+        Context context = getApplicationContext();
+        CharSequence contentTitle = title;
+        CharSequence contentText = message;
+        Intent notificationIntent = new Intent(this, Playing.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+
+        mNotificationManager.notify(HELLO_ID, notification);
+
     }
 
     private void setupPlaybackListeners() {
@@ -189,6 +214,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		switch(v.getId()) {
 		case R.id.play_button:
             playStatus.setText("Bufferring Audio");
+            setNotification("CHIRP!", "Playing");
 			playbackService.start();
 			v.setEnabled(false);
             stopButton.setEnabled(true);
