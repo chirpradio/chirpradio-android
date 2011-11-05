@@ -99,6 +99,15 @@ public class Track implements Serializable {
 		// TODO Auto-generated constructor stub
 	}
 
+    public Track(String str) {
+        super();
+        try {
+            parseTrack(new JSONObject(str));
+        } catch(Exception e) {
+            Debug.log(this, "Exception parsing track: " + e.toString());
+        }
+    }
+
 	/** Constructs a track object from the JSON of a track
 	* 
 	* @throws JSONException, ParseException 
@@ -106,6 +115,16 @@ public class Track implements Serializable {
 	*/
 	public Track(JSONObject json_track) throws JSONException, ParseException {
 		super();
+        try {
+            parseTrack(json_track);
+        } catch(Exception e) {
+            Debug.log(this, "Exception parsing track: " + e.toString());
+        }
+	}
+
+    private void parseTrack(JSONObject json_track) throws JSONException, ParseException {
+        //Debug.log(this, json.get(name).toString());
+        //JSONObject json_track = new JSONObject(json.get("now_playing").toString());
 		this.dj = json_track.getString("dj");
 		this.artist = json_track.getString("artist");
 		this.track = json_track.getString("track");
@@ -125,7 +144,8 @@ public class Track implements Serializable {
 		//FIXME: played_at_local show up as "Sat Jan 29 21:08:43 America/Chicago 2011". Time is correctly shown as GMT but "America/Chicago" is not.
 		this.played_at_local = dateFormat.parse(json_track.getString("played_at_local"));
 		this.id = json_track.getString("id");
-	}
+
+    }
 
 	public String getDj() {
 		return dj;

@@ -29,16 +29,18 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.text.Html;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
+import org.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import java.text.ParseException;
 
 public class Playing extends Activity implements OnClickListener, OnSeekBarChangeListener, OnPlaybackStartedListener, OnPlaybackStoppedListener {
 
-	private static final String LOG_TAG = "PlayingActivity";
 	public final static String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.TRACK_CHANGED";
 	
     private PlaybackService playbackService;
@@ -48,8 +50,15 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	ArrayList<Track> recentTracks;
 	Track currentTrack;
 	private TextView nowPlayingTextView;
-	private TextView recentlyPlayedTextView;
+    private TextView previous_0;
+    private TextView previous_1;
+    private TextView previous_2;
+    private TextView previous_3;
+    private TextView previous_4;
 	//private TextView playedAtTextView;
+    private View playButton;
+    private View stopButton;
+    private TextView playStatus;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -66,21 +75,52 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         
 		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
 		//playedAtTextView = (TextView) findViewById(R.id.played_at);
-		recentlyPlayedTextView = (TextView) findViewById(R.id.recently_played);
+        previous_0 = (TextView)findViewById(R.id.previous_0);
+        previous_1 = (TextView)findViewById(R.id.previous_1);
+        previous_2 = (TextView)findViewById(R.id.previous_2);
+        previous_3 = (TextView)findViewById(R.id.previous_3);
+        //previous_4 = (TextView)findViewById(R.id.previous_4);
+        playStatus = (TextView)findViewById(R.id.play_status);
+
+        // move this into a thread
+        try {
+            getPlaylist();
+        } catch (Exception e) {
+            Debug.log(this, "JSON Exception parsing playlist: " + e.toString());
+        }
+    }
+
+    private void getPlaylist() throws JSONException, ParseException {
+        String str = Request.sendRequest();
+        Track t = new Track(new JSONObject(str).getJSONObject("now_playing"));
+        nowPlayingTextView.setText(t.getArtist() + " - " + t.getTrack());
+
+        JSONArray previous = new JSONObject(str).getJSONArray("recently_played");
+
+        t = new Track(previous.getJSONObject(0));
+        previous_0.setText(t.getArtist() + " - " + t.getTrack());
+        t = new Track(previous.getJSONObject(1));
+        previous_1.setText(t.getArtist() + " - " + t.getTrack());
+        t = new Track(previous.getJSONObject(2));
+        previous_2.setText(t.getArtist() + " - " + t.getTrack());
+        t = new Track(previous.getJSONObject(3));
+        previous_3.setText(t.getArtist() + " - " + t.getTrack());
+        //t = new Track(previous.getJSONObject(4));
+        //previous_4.setText(t.getArtist() + " - " + t.getTrack());
     }
     
     private void setupUICallbacks() {
-        View playButton = findViewById(R.id.play_button);
+        playButton = findViewById(R.id.play_button);
         playButton.setOnClickListener(this);
-        View stopButton = findViewById(R.id.stop_button);
+        stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(this);
         
-        SeekBar seekBar = (SeekBar) findViewById(R.id.volume_seek_bar);
-        seekBar.setOnSeekBarChangeListener(this);
+        //SeekBar seekBar = (SeekBar) findViewById(R.id.volume_seek_bar);
+        //seekBar.setOnSeekBarChangeListener(this);
         int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int progress = (int) Math.ceil(volume * 100.0 / max);
-        seekBar.setProgress(progress);
+        //seekBar.setProgress(progress);
     }
     
     private void setupNotification() {
@@ -98,7 +138,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
             am.setRepeating(AlarmManager.ELAPSED_REALTIME, firstTime, 10000, sender);
             
        } catch (Exception e) {
-            Log.e(LOG_TAG, e.toString());
+            Debug.log(this, e.toString());
        }
     }
 
@@ -114,13 +154,13 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	      @Override
 	      public void onServiceConnected(ComponentName name, IBinder service) {
 	    	  playbackService = ((PlaybackService.PlaybackBinder) service).getService();
-	        Log.d(LOG_TAG, "CONNECTED");
+	        Debug.log(this, "CONNECTED");
 	        setupPlaybackListeners();
 	      }
 
 	      @Override
 	      public void onServiceDisconnected(ComponentName name) {
-	        Log.w(LOG_TAG, "DISCONNECT");
+	        Debug.log(this, "DISCONNECT");
 	        playbackService = null;
 	      }
 	    };
@@ -148,12 +188,16 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	public void onClick(View v) {
 		switch(v.getId()) {
 		case R.id.play_button:
+            playStatus.setText("Bufferring Audio");
 			playbackService.start();
 			v.setEnabled(false);
+            stopButton.setEnabled(true);
 			break;
 		case R.id.stop_button:
+            playStatus.setText("Stopping");
 			playbackService.stop();
 			v.setEnabled(false);
+            playButton.setEnabled(true);
 			break;
 		}
 	}
@@ -166,7 +210,8 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	private void setAudioLevel(int level) {
 		int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 		int volume = (int) Math.ceil(level / 100.0 * max);
-		audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+        Debug.log(this, "not setting audio volume like i should");
+		//audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
 	}
 
 	@Override
@@ -203,17 +248,17 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		
 		final String finalRecentlyPlayedContent = recentlyPlayedContent;
 		
-		recentlyPlayedTextView.post(new Runnable() {
-	    	public void run() {	    		
-				recentlyPlayedTextView.setText(Html.fromHtml(finalRecentlyPlayedContent));	  	    	
-			}
-		});
+		//recentlyPlayedTextView.post(new Runnable() {
+	   // 	public void run() {	    		
+		//		recentlyPlayedTextView.setText(Html.fromHtml(finalRecentlyPlayedContent));	  	    	
+		//	}
+		//});
 	}
 
 	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
-	      Log.i("Playing.nowPlayingReceiver", "onReceive called");	
+	      Debug.log(this, "onReceive called");	
 	      recentTracks = new ArrayList<Track>();;
 	      currentTrack = (Track) intent.getExtras().getSerializable("now_playing");
 		  for (int i = 0; i < 3; ++i) {
@@ -240,7 +285,8 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		    public void run() {
 				findViewById(R.id.play_button).setEnabled(true);
 				findViewById(R.id.stop_button).setEnabled(false);
-				Log.i(LOG_TAG, "playback stopped");
+                playStatus.setText("Stopped");
+				Debug.log(this, "playback stopped");
 		    }
 		});
 	}
@@ -250,7 +296,8 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		runOnUiThread(new Runnable() {
 		    public void run() {
 		    	findViewById(R.id.stop_button).setEnabled(true);
-				Log.i(LOG_TAG, "playback started");
+                playStatus.setText("Playback started");
+				Debug.log(this, "playback started");
 		    }
 		});
 	}    

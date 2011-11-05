@@ -29,21 +29,21 @@ import android.os.Build;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import org.npr.android.news.StreamProxy;
 
 public class PlaybackService extends Service implements OnPreparedListener, OnErrorListener, OnCompletionListener {
 
-	private static final String LOG_TAG = "PlaybackService"; 
 	private static final String STREAM_URL = "http://www.live365.com/play/chirpradio";
 	
 	private MediaPlayer mediaPlayer;
 	private StreamProxy streamProxy;
 	private Boolean isPrepared = false;
+    private Boolean isPreparing = false;
 	private Boolean isPlaying = false;
 	private Boolean isInCall = false;
 	private Boolean isStopping = false;
+    private Boolean stopAfterPrepared = false;
 	
 	private PhoneStateListener phoneStateListener;
 	
@@ -67,34 +67,15 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 
     @Override
     public void onCreate() {
-    	Log.d(LOG_TAG, "created");
+    	Debug.log(this, "created");
     	mediaPlayer = new MediaPlayer();
     	mediaPlayer.setOnPreparedListener(this);
     	mediaPlayer.setOnErrorListener(this);
     	mediaPlayer.setOnCompletionListener(this);
     	
-    	// Only use a stream proxy when running on OS < 2.2 (SDK ver 8)
-    	// as these versions don't natively support Streaming MP3s
-    	int sdkVersion = 0;
-    	try {
-    	  sdkVersion = Integer.parseInt(Build.VERSION.SDK);
-    	} catch (NumberFormatException e) {
-    	}
-
     	String playbackUrl;
-    	if (sdkVersion < 8) {
-    		Log.d(LOG_TAG, "Using proxy; running on sdk version " + sdkVersion);
-    	    if (streamProxy == null) {
-    	        streamProxy = new StreamProxy();
-    	        streamProxy.init();
-//    	        streamProxy.start();
-    	    }
-    	    String streamProxyUrl = String.format("http://127.0.0.1:%d/%s", streamProxy.getPort(), STREAM_URL);
-    	    playbackUrl = streamProxyUrl;
-    	} else {
-    		playbackUrl = STREAM_URL;
-    	}
-    	
+        playbackUrl = STREAM_URL;
+
     	try {
 			mediaPlayer.setDataSource(playbackUrl);
 		} catch (IOException e) {
@@ -108,13 +89,14 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     // Start on pre-2.0 systems
     @Override
     public void onStart(Intent intent, int startId) {
-        Log.i(LOG_TAG, "Received start id " + startId + ": " + intent);
+        Debug.log(this, "error - we shouldn't be starting on pre 2.0 devices");
+        Debug.log(this, "Received start id " + startId + ": " + intent);
     }
 
     // Start on 2.0+ systems
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i(LOG_TAG, "Received start id " + startId + ": " + intent);
+        Debug.log(this, "Received start id " + startId + ": " + intent);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
@@ -122,7 +104,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     
     @Override
     public void onDestroy() {
-    	Log.d(LOG_TAG, "DESTROYED");
+    	Debug.log(this, "DESTROYED");
     	mediaPlayer.stop();
     	mediaPlayer.release();
     	mediaPlayer = null;
@@ -130,26 +112,34 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 	
 	public synchronized void start() {
 		if (isStopping) {
-			Log.d(LOG_TAG, "still stopping");
+			Debug.log(this, "still stopping");
 			return;
 		}
 		if (isPrepared) {
-			Log.d(LOG_TAG, "start");
+			Debug.log(this, "start");
 			mediaPlayer.start();
 		} else {
-			Log.d(LOG_TAG, "start, but not prepared");
+            Debug.log(this, "start, but not prepared");
 			if (streamProxy != null) {
     	        streamProxy.start();
 			}
+            Debug.log(this, "Preparing media player");
+            isPreparing = true;
 			mediaPlayer.prepareAsync();
 			return;
 		}
 	}
 	
 	public synchronized void stop() {
-		if (isStopping || !isPlaying) {
-			return;
-		}
+        if(isPreparing) {
+            stopAfterPrepared = true;
+            return;
+        }
+        if (isStopping || !isPlaying) {
+            Debug.log(this, "Stop playback called, but we're either stopped or not playing");
+            return;
+        }
+
 		mediaPlayer.stop();
 		isPlaying = false;
 		isPrepared = false;
@@ -175,18 +165,26 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 	
 	@Override
 	public void onPrepared(MediaPlayer mp) {
-		Log.d(LOG_TAG, "prepared, starting media player");
+        Debug.log(this, "prepared, starting media player");
+        isPreparing = false;
 		isPrepared = true;
 		isPlaying = true;
-		mediaPlayer.start();
-		if (onPlaybackStartedListener != null) {
-			onPlaybackStartedListener.onPlaybackStarted();
-		}
+        if(stopAfterPrepared) {
+            // i should be able to leave the media player in the prepared state
+            // to make subsequent start calls go faster
+            Debug.log(this, "Prepare completed, but the user told us to stop already");
+        }
+        else {
+            mediaPlayer.start();
+            if (onPlaybackStartedListener != null) {
+                onPlaybackStartedListener.onPlaybackStarted();
+            }
+        }
 	}
 	
 	@Override
 	public boolean onError(MediaPlayer mp, int what, int extra) {
-		Log.d(LOG_TAG, "ERROR! what: " + what + " extra: " + extra);
+		Debug.log(this, "ERROR! what: " + what + " extra: " + extra);
 		return false; // Also call onCompletion
 	}
 
@@ -195,7 +193,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 		if (onPlaybackStoppedListener != null) {
 			onPlaybackStoppedListener.onPlaybackStopped();
 		}
-		Log.d(LOG_TAG, "onCompletion");
+		Debug.log(this, "onCompletion");
 		isPrepared = false;
 		isPlaying = false;
 	}
@@ -220,7 +218,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 		    case TelephonyManager.CALL_STATE_OFFHOOK:
 		    case TelephonyManager.CALL_STATE_RINGING:
 		      if (isPlaying) {
-		  		Log.d(LOG_TAG, "call began, stopping...");
+		  		Debug.log(this, "call began, stopping...");
 		        stop();
 		        isInCall = true;
 		      }
@@ -228,7 +226,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 		    case TelephonyManager.CALL_STATE_IDLE:
 		      if (isInCall) {
 		    	 isInCall = false;
-		    	Log.d(LOG_TAG, "call ended; resuming...");
+		    	Debug.log(this, "call ended; resuming...");
 		        start();
 		      }
 		      break;
