@@ -40,11 +40,16 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.text.ParseException;
+import android.text.method.ScrollingMovementMethod;
+import android.app.ProgressDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 
 public class Playing extends Activity implements OnClickListener, 
         OnPlaybackStartedListener, OnPlaybackStoppedListener {
 
 	public final static String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.TRACK_CHANGED";
+    private final static int PROGRESS_DIALOG = 1;
 	
     private PlaybackService playbackService;
     private ServiceConnection serviceConnection;
@@ -54,8 +59,8 @@ public class Playing extends Activity implements OnClickListener,
     private TextView recentlyPlayedTextView;
     private View playButton;
     private View stopButton;
-    private TextView playStatus;
     private LinkedList<Track> playlist;
+    private ProgressDialog progress;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,7 +73,7 @@ public class Playing extends Activity implements OnClickListener,
         
 		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
 		recentlyPlayedTextView = (TextView) findViewById(R.id.previous);
-        playStatus = (TextView)findViewById(R.id.play_status);
+        recentlyPlayedTextView.setMovementMethod(new ScrollingMovementMethod());
         playButton = findViewById(R.id.play_button);
         playButton.setOnClickListener(this);
         stopButton = findViewById(R.id.stop_button);
@@ -180,14 +185,12 @@ public class Playing extends Activity implements OnClickListener,
 	public void onClick(View v) {
 		switch(v.getId()) {
 		case R.id.play_button:
-            playStatus.setText("Bufferring Audio");
-            //setNotification("CHIRPRadio.org", "Playing");
+            showDialog(PROGRESS_DIALOG);
 			playbackService.start();
 			v.setEnabled(false);
             stopButton.setEnabled(true);
 			break;
 		case R.id.stop_button:
-            playStatus.setText("Stopping");
 			playbackService.stop();
 			v.setEnabled(false);
             playButton.setEnabled(true);
@@ -234,13 +237,15 @@ public class Playing extends Activity implements OnClickListener,
                 Track t = new Track(new JSONObject(json).getJSONObject("now_playing"));
                 playlist.add(t);
                 JSONArray previous = new JSONObject(json).getJSONArray("recently_played");
-
-                t = new Track(previous.getJSONObject(0));
-                playlist.add(t);
-                t = new Track(previous.getJSONObject(1));
+    
+                for(int i = 0 ; i < 5 ; i++) {
+                    t = new Track(previous.getJSONObject(i));
+                    playlist.add(t);
+                }
+                /*t = new Track(previous.getJSONObject(1));
                 playlist.add(t);
                 t = new Track(previous.getJSONObject(2));
-                playlist.add(t);
+                playlist.add(t);*/
                 updateCurrentlyPlaying(playlist);
             } catch (Exception e) {
                 Debug.log(this, "Error parsing now_playing: " + e.toString());
@@ -268,7 +273,6 @@ public class Playing extends Activity implements OnClickListener,
                 //cancelNotification();
 				findViewById(R.id.play_button).setEnabled(true);
 				findViewById(R.id.stop_button).setEnabled(false);
-                playStatus.setText("Stopped");
 				Debug.log(this, "playback stopped");
 		    }
 		});
@@ -276,16 +280,36 @@ public class Playing extends Activity implements OnClickListener,
 
 	@Override
 	public void onPlaybackStarted() {
+                progress.dismiss();
 		runOnUiThread(new Runnable() {
 		    public void run() {
                 //Track t = playlist.get(0);
                 //setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
                 findViewById(R.id.stop_button).setEnabled(true);
-                playStatus.setText("Playback started");
 				Debug.log(this, "playback started");
 		    }
 		});
 	}    
 
+    protected Dialog onCreateDialog(int id) {
+        switch(id) {
+            case PROGRESS_DIALOG:
+            Debug.log(this, "creating dialog");
+                progress = new ProgressDialog(this);
+                progress.setMessage("Please Wait");
+                progress.setTitle("Loading");
+                progress.setIndeterminate(true);
+                progress.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        Debug.log(this,"cancelling dialog");
+                        // ok
+                    }
+                });
+                return progress;
+            default:
+                return null;
+        }
+    }
     
 }

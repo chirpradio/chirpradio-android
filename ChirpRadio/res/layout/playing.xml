@@ -7,62 +7,6 @@
     android:paddingTop="120dip" 
     >
 
-	<TextView 
-		android:background="@drawable/rounded_edges"
-		android:id="@+id/now_playing"
-		android.textColor="FFFFFF"
-		android:layout_width="fill_parent" 
-		android:layout_height="wrap_content"
-		android:layout_margin="5dip"
-		android:editable="false">
-	</TextView>
-
-	<TextView 
-		android:background="@drawable/rounded_edges"
-		android:id="@+id/previous"
-		android.textColor="FFFFFF"
-		android:layout_width="fill_parent" 
-		android:layout_height="wrap_content"
-		android:layout_margin="5dip"
-		android:editable="false">
-	</TextView>
-	<!--<TextView 
-		android:background="@drawable/rounded_edges"
-		android:id="@+id/previous_1"
-		android.textColor="FFFFFF"
-		android:layout_width="fill_parent" 
-		android:layout_height="wrap_content"
-		android:layout_margin="5dip"
-		android:editable="false">
-	</TextView>
-	<TextView 
-		android:background="@drawable/rounded_edges"
-		android:id="@+id/previous_2"
-		android.textColor="FFFFFF"
-		android:layout_width="fill_parent" 
-		android:layout_height="wrap_content"
-		android:layout_margin="5dip"
-		android:editable="false">
-	</TextView>
-	<TextView 
-		android:background="@drawable/rounded_edges"
-		android:id="@+id/previous_3"
-		android.textColor="FFFFFF"
-		android:layout_width="fill_parent" 
-		android:layout_height="wrap_content"
-		android:layout_margin="5dip"
-		android:editable="false">
-	</TextView>-->
-	<!--<TextView 
-		android:background="@drawable/rounded_edges"
-		android:id="@+id/previous_4"
-		android.textColor="FFFFFF"
-		android:layout_width="fill_parent" 
-		android:layout_height="wrap_content"
-		android:layout_margin="5dip"
-		android:editable="false">
-	</TextView>-->
-	
 	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="fill_parent"
@@ -84,23 +28,25 @@
 			android:layout_weight="1"
 		/>
 	</LinearLayout>
+
 	<TextView 
 		android:background="@drawable/rounded_edges"
-		android:id="@+id/play_status"
+		android:id="@+id/now_playing"
 		android.textColor="FFFFFF"
 		android:layout_width="fill_parent" 
 		android:layout_height="wrap_content"
 		android:layout_margin="5dip"
 		android:editable="false">
 	</TextView>
-	
-	<!--<SeekBar
-		android:id="@+id/volume_seek_bar"
-		android:layout_width="fill_parent"
+
+	<TextView 
+		android:background="@drawable/rounded_edges"
+		android:id="@+id/previous"
+		android.textColor="FFFFFF"
+		android:layout_width="fill_parent" 
 		android:layout_height="wrap_content"
-		android:progressDrawable="@drawable/red_progress_horizontal"
-		android:thumb="@drawable/red_seek_thumb"
 		android:layout_margin="5dip"
-	/>-->
-	
+        android:scrollbars="vertical"
+		android:editable="false">
+	</TextView>
 </LinearLayout>
