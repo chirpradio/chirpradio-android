@@ -15,6 +15,7 @@
 package org.chirpradio.mobile;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -36,12 +37,15 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.app.NotificationManager;
 import android.app.Notification;
+import android.os.AsyncTask;
+import java.io.BufferedReader;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.text.ParseException;
 
-public class Playing extends Activity implements OnClickListener, OnSeekBarChangeListener, OnPlaybackStartedListener, OnPlaybackStoppedListener {
+public class Playing extends Activity implements OnClickListener, 
+        OnSeekBarChangeListener, OnPlaybackStartedListener, OnPlaybackStoppedListener {
 
 	public final static String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.TRACK_CHANGED";
 	
@@ -49,18 +53,12 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
     private ServiceConnection serviceConnection;
 	private Boolean serviceIsBound;
 	private AudioManager audioManager;
-	ArrayList<Track> recentTracks;
-	Track currentTrack;
 	private TextView nowPlayingTextView;
-    private TextView previous_0;
-    private TextView previous_1;
-    private TextView previous_2;
-    private TextView previous_3;
-    private TextView previous_4;
-	//private TextView playedAtTextView;
+    private TextView recentlyPlayedTextView;
     private View playButton;
     private View stopButton;
     private TextView playStatus;
+    private LinkedList<Track> playlist;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,39 +74,11 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
         findViewById(R.id.stop_button).setEnabled(false);
         
 		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
-		//playedAtTextView = (TextView) findViewById(R.id.played_at);
-        previous_0 = (TextView)findViewById(R.id.previous_0);
-        previous_1 = (TextView)findViewById(R.id.previous_1);
-        previous_2 = (TextView)findViewById(R.id.previous_2);
-        previous_3 = (TextView)findViewById(R.id.previous_3);
-        //previous_4 = (TextView)findViewById(R.id.previous_4);
+		recentlyPlayedTextView = (TextView) findViewById(R.id.previous);
         playStatus = (TextView)findViewById(R.id.play_status);
 
-        // move this into a thread
-        try {
-            getPlaylist();
-        } catch (Exception e) {
-            Debug.log(this, "JSON Exception parsing playlist: " + e.toString());
-        }
-    }
-
-    private void getPlaylist() throws JSONException, ParseException {
-        String str = Request.sendRequest();
-        Track t = new Track(new JSONObject(str).getJSONObject("now_playing"));
-        nowPlayingTextView.setText(t.getArtist() + " - " + t.getTrack());
-
-        JSONArray previous = new JSONObject(str).getJSONArray("recently_played");
-
-        t = new Track(previous.getJSONObject(0));
-        previous_0.setText(t.getArtist() + " - " + t.getTrack());
-        t = new Track(previous.getJSONObject(1));
-        previous_1.setText(t.getArtist() + " - " + t.getTrack());
-        t = new Track(previous.getJSONObject(2));
-        previous_2.setText(t.getArtist() + " - " + t.getTrack());
-        t = new Track(previous.getJSONObject(3));
-        previous_3.setText(t.getArtist() + " - " + t.getTrack());
-        //t = new Track(previous.getJSONObject(4));
-        //previous_4.setText(t.getArtist() + " - " + t.getTrack());
+        playlist = new LinkedList<Track>();
+        new GetPlaylistTask().execute();
     }
     
     private void setupUICallbacks() {
@@ -146,7 +116,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
        }
     }
 
-    private static final int HELLO_ID = 1;
+    private static final int CHIRP_ID = 1019;
     private void setNotification(String title, String message) {
         String ns = Context.NOTIFICATION_SERVICE;
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
@@ -155,6 +125,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 
         int icon = R.drawable.icon;
         Notification notification = new Notification(icon, tickerText, when);
+        notification.flags = Notification.FLAG_ONGOING_EVENT;
         Context context = getApplicationContext();
         CharSequence contentTitle = title;
         CharSequence contentText = message;
@@ -163,8 +134,13 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 
         notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
 
-        mNotificationManager.notify(HELLO_ID, notification);
+        mNotificationManager.notify(CHIRP_ID, notification);
+    }
 
+    private void cancelNotification() {
+        String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+        mNotificationManager.cancel(CHIRP_ID);
     }
 
     private void setupPlaybackListeners() {
@@ -214,7 +190,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		switch(v.getId()) {
 		case R.id.play_button:
             playStatus.setText("Bufferring Audio");
-            setNotification("CHIRP!", "Playing");
+            setNotification("CHIRPRadio.org", "Playing");
 			playbackService.start();
 			v.setEnabled(false);
             stopButton.setEnabled(true);
@@ -228,69 +204,36 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 		}
 	}
 
-	@Override
-	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-		setAudioLevel(progress);
-	}
-	
-	private void setAudioLevel(int level) {
-		int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-		int volume = (int) Math.ceil(level / 100.0 * max);
-        Debug.log(this, "not setting audio volume like i should");
-		//audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
-	}
-
-	@Override
-	public void onStartTrackingTouch(SeekBar seekBar) {}
-
-	@Override
-	public void onStopTrackingTouch(SeekBar seekBar) {}
-	
-	public void updateCurrentlyPlaying() {
+	public void updateCurrentlyPlaying(LinkedList<Track> tracks) {
 		
+        Track currentTrack = tracks.get(0);
 
 		final String nowPlayingContent = "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " +
 										 currentTrack.getDj() + "<br><br><hr>" + "<b>" + currentTrack.getArtist() + "</b>" +
 										 " - " + currentTrack.getTrack() + " <i>from " + currentTrack.getRelease() + " (" +
 										 currentTrack.getLabel() + ")" + "</i>";
 		
-		nowPlayingTextView.post(new Runnable() {
-	    	public void run() {
 	    		nowPlayingTextView.setText(Html.fromHtml(nowPlayingContent));	 
-//	    		playedAt.setText(now_playing.getPlayed_at_local().toString());
-			}
-		});
 		
 		String recentlyPlayedContent = "<font color=#FCFC77>RECENTLY PLAYED</font>" + "<br>";
 
-		for (int i = 0; i < recentTracks.size(); ++i) {
-			Track recentTrack = recentTracks.get(i);
+		for (int i = 1; i < tracks.size(); i++) {
+			Track recentTrack = tracks.get(i);
+            Debug.log(this, "recent track : " + recentTrack.getTrack());
 			recentlyPlayedContent += "<b>" + recentTrack.getArtist() + "</b>" + " - " + recentTrack.getTrack() + " <i>from " + 
 			recentTrack.getRelease() + " (" + recentTrack.getLabel() + ")" + "</i>";				
-			if (i < recentTracks.size()-1) {
+			if (i < tracks.size()-1) {
 				recentlyPlayedContent += "<br><br><hr>";
 			}						
     	}
-		
-		final String finalRecentlyPlayedContent = recentlyPlayedContent;
-		
-		//recentlyPlayedTextView.post(new Runnable() {
-	   // 	public void run() {	    		
-		//		recentlyPlayedTextView.setText(Html.fromHtml(finalRecentlyPlayedContent));	  	    	
-		//	}
-		//});
+        recentlyPlayedTextView.setText(Html.fromHtml(recentlyPlayedContent));	  	    	
 	}
 
+    // ng: not sure what the point of this broadcast receiver was
 	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
 	      Debug.log(this, "onReceive called");	
-	      recentTracks = new ArrayList<Track>();;
-	      currentTrack = (Track) intent.getExtras().getSerializable("now_playing");
-		  for (int i = 0; i < 3; ++i) {
-			  recentTracks.add((Track)intent.getExtras().getSerializable("recently_played"+String.valueOf(i)));
-		  }
-	      updateCurrentlyPlaying();
 	    }
 	};
 	
@@ -309,6 +252,7 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	public void onPlaybackStopped() {
 		runOnUiThread(new Runnable() {
 		    public void run() {
+                cancelNotification();
 				findViewById(R.id.play_button).setEnabled(true);
 				findViewById(R.id.stop_button).setEnabled(false);
                 playStatus.setText("Stopped");
@@ -321,10 +265,54 @@ public class Playing extends Activity implements OnClickListener, OnSeekBarChang
 	public void onPlaybackStarted() {
 		runOnUiThread(new Runnable() {
 		    public void run() {
-		    	findViewById(R.id.stop_button).setEnabled(true);
+                Track t = playlist.get(0);
+                setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
+                findViewById(R.id.stop_button).setEnabled(true);
                 playStatus.setText("Playback started");
 				Debug.log(this, "playback started");
 		    }
 		});
 	}    
-}
+
+
+    private class GetPlaylistTask extends AsyncTask<Void, Integer, Boolean>
+    {
+        private boolean result = false;
+
+        protected Boolean doInBackground(Void... no) {
+            BufferedReader in = null;
+            Boolean result = false;
+            try {
+                String str = Request.sendRequest();
+                result = true;
+                Track t = new Track(new JSONObject(str).getJSONObject("now_playing"));
+                playlist = new LinkedList<Track>();
+                playlist.add(t);
+
+                JSONArray previous = new JSONObject(str).getJSONArray("recently_played");
+
+                t = new Track(previous.getJSONObject(0));
+                playlist.add(t);
+                t = new Track(previous.getJSONObject(1));
+                playlist.add(t);
+                t = new Track(previous.getJSONObject(2));
+                playlist.add(t);
+            } catch (Exception e) {
+                Debug.log(this, "Exception getting playlist: " + e.toString());
+                result = false;
+            } finally {
+            }
+            return result;
+        }
+
+        protected void onPostExecute(Boolean result) {
+            Debug.log(this, "Finished getting playlist");
+            if(!result) {
+                Debug.log(this, "Retrieving playlist failed");
+            } else {
+                updateCurrentlyPlaying(playlist);
+            }
+        }
+    }
+
+        }
