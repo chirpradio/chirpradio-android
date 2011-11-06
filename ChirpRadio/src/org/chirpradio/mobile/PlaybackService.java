@@ -59,6 +59,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     private Boolean stopAfterPrepared = false;
     private Handler handler;
     private Boolean updatePlaylist;
+    private Boolean headphonesInUse;
 	
 	private PhoneStateListener phoneStateListener;
 	
@@ -106,6 +107,16 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     	mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     	setupTelephonyHooks();
 
+        // the headphone action gets called every time we get a start
+        // message, i guess so i know the headphone state all the time.
+        // so, i can assume there are no headphones plugged in, and the
+        // broadcast receiver will set it to true if there are when
+        // it gets notified the first time
+        headphonesInUse = false;
+    }
+
+    public boolean isPlaying() {
+        return isPlaying;
     }
 
     
@@ -190,6 +201,8 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 		isPlaying = false;
 		isPrepared = false;
 		isStopping = true;
+
+        cancelNotification();
 
 		// Stopping the StreamProxy can be slow, so do it in a different thread
 		// so we don't block the UI
@@ -315,7 +328,18 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
             Debug.log(this, "headphone broadcast message received");
             if(intent.getAction().equalsIgnoreCase(Intent.ACTION_HEADSET_PLUG)) {
                 int state = intent.getIntExtra("state", -1);
-                Debug.log(this, "state: " + state);
+                if(state == 1)
+                {
+                    headphonesInUse = true;
+                }
+                if(state == 0 && headphonesInUse)
+                {
+                    Debug.log(this, "headphones unplugged - stopping playback");
+                    Debug.log(this, "name: " + intent.getStringExtra("name"));
+                    Debug.log(this, "microphone: " + intent.getIntExtra("microphone", -1));
+                    headphonesInUse = false;
+                    stop();
+                }
             }
         }
     };

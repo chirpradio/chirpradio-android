@@ -88,6 +88,13 @@ public class Playing extends Activity implements OnClickListener,
     public void onStop() {
         super.onStop();
         Debug.log(this, "onStop called - unbinding");
+        if(playbackService != null) {
+            if(!playbackService.isPlaying()) {
+                Debug.log(this, "UI stopped while not playing - can shut down svc");
+                //getApplicationContext().stopService(playbackService);
+            }
+        }
+
         // wtf.  unbinding here throws an exception saying the service is already
         // unbound.  so... i guess i'll be leaking serviceconnections
         //doUnbindService();
@@ -122,22 +129,32 @@ public class Playing extends Activity implements OnClickListener,
     }
     
     void doBindService() {
-    	
     	Intent serviceIntent = new Intent(this, PlaybackService.class);
     	serviceConnection = new ServiceConnection() {
-	      @Override
-	      public void onServiceConnected(ComponentName name, IBinder service) {
-	    	  playbackService = ((PlaybackService.PlaybackBinder) service).getService();
-	        Debug.log(this, "CONNECTED");
-	        setupPlaybackListeners();
-	      }
+	        @Override
+                public void onServiceConnected(ComponentName name, IBinder service) {
+                    playbackService = ((PlaybackService.PlaybackBinder) service).getService();
+                    Debug.log(this, "CONNECTED");
+                    setupPlaybackListeners();
+                    if(playbackService != null) {
+                        if(playbackService.isPlaying()) {
+                            playButton.setEnabled(false);
+                            stopButton.setEnabled(true);
+                        } else {
+                            playButton.setEnabled(true);
+                            stopButton.setEnabled(false);
+                        }
+                    } else {
+                        Debug.log(this, "playbackService is null in onServiceConnected");
+                    }
+                }
 
-	      @Override
-	      public void onServiceDisconnected(ComponentName name) {
-	        Debug.log(this, "DISCONNECT");
-	       // playbackService = null;
-	      }
-	    };
+            @Override
+                public void onServiceDisconnected(ComponentName name) {
+                    Debug.log(this, "DISCONNECT");
+                    // playbackService = null;
+                }
+        };
 	    getApplicationContext().startService(serviceIntent);
 	    getApplicationContext().bindService(serviceIntent, serviceConnection, 0);
        
@@ -182,19 +199,21 @@ public class Playing extends Activity implements OnClickListener,
 		
         Track currentTrack = tracks.get(0);
 
-		final String nowPlayingContent = "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " +
-										 currentTrack.getDj() + "<br><br><hr>" + "<b>" + currentTrack.getArtist() + "</b>" +
-										 " - " + currentTrack.getTrack() + " <i>from " + currentTrack.getRelease() + " (" +
-										 currentTrack.getLabel() + ")" + "</i>";
-		
+		final String nowPlayingContent = 
+            "<font color=#FCFC77>NOW PLAYING</font> &#183;" + " <b>ON-AIR:</b> " +
+            currentTrack.getDj() + "<br><br><hr>" + "<b>" + currentTrack.getArtist() + "</b>" +
+            " - " + currentTrack.getTrack() + " <i>from " + currentTrack.getRelease() + " (" +
+            currentTrack.getLabel() + ")" + "</i>";
+
 	    		nowPlayingTextView.setText(Html.fromHtml(nowPlayingContent));	 
 		
 		String recentlyPlayedContent = "<font color=#FCFC77>RECENTLY PLAYED</font>" + "<br>";
 
 		for (int i = 1; i < tracks.size(); i++) {
 			Track recentTrack = tracks.get(i);
-			recentlyPlayedContent += "<b>" + recentTrack.getArtist() + "</b>" + " - " + recentTrack.getTrack() + " <i>from " + 
-			recentTrack.getRelease() + " (" + recentTrack.getLabel() + ")" + "</i>";				
+            recentlyPlayedContent += "<b>" + recentTrack.getArtist() + "</b>" + 
+                " - " + recentTrack.getTrack() + " <i>from " + 
+                recentTrack.getRelease() + " (" + recentTrack.getLabel() + ")" + "</i>";				
 			if (i < tracks.size()-1) {
 				recentlyPlayedContent += "<br><br><hr>";
 			}						
