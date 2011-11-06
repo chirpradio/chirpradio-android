@@ -62,8 +62,15 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     
 	@Override
 	public IBinder onBind(Intent intent) {
+        Debug.log(this, "Binding to service");
 		return new PlaybackBinder();
 	}
+
+    @Override
+    public boolean onUnbind(Intent intent){
+        Debug.log(this, "onUnbind");
+        return false;
+    }
 
     @Override
     public void onCreate() {

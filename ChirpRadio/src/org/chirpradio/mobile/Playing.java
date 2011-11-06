@@ -58,16 +58,17 @@ public class Playing extends Activity implements OnClickListener,
     private View stopButton;
     private TextView playStatus;
     private LinkedList<Track> playlist;
-
+    // for updating the playlist view
     private Handler handler;
+    private Boolean updatePlaylist;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playing);
         
-        doBindService();
-        setupNotification();
+        //doBindService();
+        //setupNotification();
         findViewById(R.id.stop_button).setEnabled(false);
         
 		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
@@ -78,6 +79,7 @@ public class Playing extends Activity implements OnClickListener,
         stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(this);
 
+        updatePlaylist = true;
         handler = new Handler();
         handler.post(mUpdateTask);
     }
@@ -85,12 +87,32 @@ public class Playing extends Activity implements OnClickListener,
     // handles updating the get playlist task
     private Runnable mUpdateTask = new Runnable() {
         public void run() {
-            Debug.log(this, "updating playlist from timer");
-            new GetPlaylistTask().execute();
+            if(updatePlaylist) {
+                Debug.log(this, "updating playlist from timer");
+                new GetPlaylistTask().execute();
+            }
         }
     };
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Debug.log(this, "onStart called - binding");
+        doBindService();
+        updatePlaylist = true;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Debug.log(this, "onStop called - unbinding");
+        updatePlaylist = false;
+        // wtf.  unbinding here throws an exception saying the service is already
+        // unbound.  so... i guess i'll be leaking serviceconnections
+        //doUnbindService();
+    }
     
-    private void setupNotification() {
+    /*private void setupNotification() {
         try {
             Long firstTime = SystemClock.elapsedRealtime();
             
@@ -109,7 +131,7 @@ public class Playing extends Activity implements OnClickListener,
        } catch (Exception e) {
             Debug.log(this, e.toString());
        }
-    }
+    }*/
 
     private static final int CHIRP_ID = 1019;
     private void setNotification(String title, String message) {
@@ -157,7 +179,7 @@ public class Playing extends Activity implements OnClickListener,
 	      @Override
 	      public void onServiceDisconnected(ComponentName name) {
 	        Debug.log(this, "DISCONNECT");
-	        playbackService = null;
+	       // playbackService = null;
 	      }
 	    };
 	    getApplicationContext().startService(serviceIntent);
@@ -169,6 +191,7 @@ public class Playing extends Activity implements OnClickListener,
     void doUnbindService() {
         if (serviceIsBound) {
             // Detach our existing connection.
+            Debug.log(this, "UNBINDING SERVICE!!!!!!!!!!!!!!!!!!!!!!!!!!");
             unbindService(serviceConnection);
             serviceIsBound = false;
         }
@@ -177,7 +200,7 @@ public class Playing extends Activity implements OnClickListener,
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        doUnbindService();
+        //doUnbindService();
     }
 
 	@Override
@@ -224,22 +247,22 @@ public class Playing extends Activity implements OnClickListener,
 	}
 
     // ng: not sure what the point of this broadcast receiver was
-	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
+	/*private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
 	    @Override
 	    public void onReceive(Context arg0, Intent intent) {
 	      Debug.log(this, "onReceive called");	
 	    }
-	};
+	};*/
 	
     public void onResume() {
         super.onResume();
-        registerReceiver(nowPlayingReceiver, new IntentFilter(ACTION_NOW_PLAYING_CHANGED));
+        //registerReceiver(nowPlayingReceiver, new IntentFilter(ACTION_NOW_PLAYING_CHANGED));
     }
 
     
     public void onPause() {
         super.onPause();
-        unregisterReceiver(nowPlayingReceiver);
+        //unregisterReceiver(nowPlayingReceiver);
     }
 
 	@Override
