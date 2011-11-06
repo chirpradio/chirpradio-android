@@ -100,6 +100,7 @@ public class Playing extends Activity implements OnClickListener,
         Debug.log(this, "onStart called - binding");
         doBindService();
         updatePlaylist = true;
+        registerReceiver(headphoneReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
     }
 
     @Override
@@ -253,6 +254,17 @@ public class Playing extends Activity implements OnClickListener,
 	      Debug.log(this, "onReceive called");	
 	    }
 	};*/
+
+    private BroadcastReceiver headphoneReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context arg0, Intent intent) {
+            Debug.log(this, "headphone broadcast message received");
+            if(intent.getAction().equalsIgnoreCase(Intent.ACTION_HEADSET_PLUG)) {
+                String data = intent.getDataString();
+                Debug.log(this, "data: " + data);
+            }
+        }
+    };
 	
     public void onResume() {
         super.onResume();
