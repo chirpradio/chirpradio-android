@@ -19,16 +19,29 @@ import java.io.IOException;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.content.BroadcastReceiver;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import java.util.LinkedList;
+import java.util.List;
+import android.os.AsyncTask;
+import java.io.BufferedReader;
+import org.json.JSONObject;
+import org.json.JSONArray;
+import android.os.Handler;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Notification;
 
 import org.npr.android.news.StreamProxy;
 
@@ -44,6 +57,8 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 	private Boolean isInCall = false;
 	private Boolean isStopping = false;
     private Boolean stopAfterPrepared = false;
+    private Handler handler;
+    private Boolean updatePlaylist;
 	
 	private PhoneStateListener phoneStateListener;
 	
@@ -90,6 +105,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 		}
     	mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
     	setupTelephonyHooks();
+
     }
 
     
@@ -104,6 +120,11 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Debug.log(this, "Received start id " + startId + ": " + intent);
+        registerReceiver(headphoneReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+        Debug.log(this, "Starting get playlist task");
+        updatePlaylist = true;
+        handler = new Handler();
+        handler.post(mUpdateTask);
         // We want this service to continue running until it is explicitly
         // stopped, so return sticky.
         return START_STICKY;
@@ -116,6 +137,24 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     	mediaPlayer.release();
     	mediaPlayer = null;
     }
+
+    private void notifyUi(String playlist) {
+        Debug.log(this, "Notifying UI of playlist update");
+        try {
+            Track t = new Track(new JSONObject(playlist).getJSONObject("now_playing"));
+            if(isPlaying)   
+                setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
+        } catch (Exception e) {
+            Debug.log(this, playlist);
+            Debug.log(this, "Error parsing now_playing: " + e.toString());
+        }
+
+        Intent intent = new Intent();
+        intent.setAction("CHIRP");
+        intent.putExtra("playlist", playlist);
+        sendBroadcast(intent);
+    }
+
 	
 	public synchronized void start() {
 		if (isStopping) {
@@ -213,6 +252,32 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 		onPlaybackStartedListener = listener;
 	}
 	
+    private static final int CHIRP_ID = 1019;
+    private void setNotification(String title, String message) {
+        String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+        CharSequence tickerText = message;
+        long when = System.currentTimeMillis();
+
+        int icon = R.drawable.icon;
+        Notification notification = new Notification(icon, tickerText, when);
+        notification.flags = Notification.FLAG_ONGOING_EVENT;
+        Context context = getApplicationContext();
+        CharSequence contentTitle = title;
+        CharSequence contentText = message;
+        Intent notificationIntent = new Intent(this, Playing.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+
+        mNotificationManager.notify(CHIRP_ID, notification);
+    }
+
+    private void cancelNotification() {
+        String ns = Context.NOTIFICATION_SERVICE;
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
+        mNotificationManager.cancel(CHIRP_ID);
+    }
 	
 	private void setupTelephonyHooks() {
 		TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
@@ -243,4 +308,60 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 
 		telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
 	}	
+
+    private BroadcastReceiver headphoneReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context arg0, Intent intent) {
+            Debug.log(this, "headphone broadcast message received");
+            if(intent.getAction().equalsIgnoreCase(Intent.ACTION_HEADSET_PLUG)) {
+                int state = intent.getIntExtra("state", -1);
+                Debug.log(this, "state: " + state);
+            }
+        }
+    };
+
+    // handles updating the get playlist task
+    private Runnable mUpdateTask = new Runnable() {
+        public void run() {
+            if(updatePlaylist) {
+                Debug.log(this, "updating playlist from timer");
+                new GetPlaylistTask().execute();
+            }
+        }
+    };
+
+    private class GetPlaylistTask extends AsyncTask<Void, Integer, Boolean>
+    {
+        private boolean result = false;
+        //private List<Track> playlist = new LinkedList<Track>();
+        private String playlist;
+
+        protected Boolean doInBackground(Void... no) {
+            BufferedReader in = null;
+            Boolean result = false;
+            try {
+                playlist = Request.sendRequest();
+                result = true;
+            } catch (Exception e) {
+                Debug.log(this, "Exception getting playlist: " + e.toString());
+                result = false;
+            } finally {
+            }
+            return result;
+        }
+
+        protected void onPostExecute(Boolean result) {
+            Debug.log(this, "Finished getting playlist");
+            if(!result) {
+                Debug.log(this, "Retrieving playlist failed");
+            } else {
+                //updateCurrentlyPlaying(playlist);
+                notifyUi(playlist);
+            }
+            Debug.log(this, "Next playlist update in 20 seconds");
+            //Track t = playlist.get(0);
+            //setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
+            handler.postDelayed(mUpdateTask, 20000);
+        }
+    }
 }

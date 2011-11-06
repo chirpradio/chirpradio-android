@@ -35,13 +35,11 @@ import android.view.View.OnClickListener;
 import android.widget.TextView;
 import android.app.NotificationManager;
 import android.app.Notification;
-import android.os.AsyncTask;
 import java.io.BufferedReader;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.text.ParseException;
-import android.os.Handler;
 
 public class Playing extends Activity implements OnClickListener, 
         OnPlaybackStartedListener, OnPlaybackStoppedListener {
@@ -58,9 +56,6 @@ public class Playing extends Activity implements OnClickListener,
     private View stopButton;
     private TextView playStatus;
     private LinkedList<Track> playlist;
-    // for updating the playlist view
-    private Handler handler;
-    private Boolean updatePlaylist;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -79,38 +74,24 @@ public class Playing extends Activity implements OnClickListener,
         stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(this);
 
-        updatePlaylist = true;
-        handler = new Handler();
-        handler.post(mUpdateTask);
     }
-
-    // handles updating the get playlist task
-    private Runnable mUpdateTask = new Runnable() {
-        public void run() {
-            if(updatePlaylist) {
-                Debug.log(this, "updating playlist from timer");
-                new GetPlaylistTask().execute();
-            }
-        }
-    };
 
     @Override
     public void onStart() {
         super.onStart();
         Debug.log(this, "onStart called - binding");
         doBindService();
-        updatePlaylist = true;
-        registerReceiver(headphoneReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+        registerReceiver(nowPlayingReceiver, new IntentFilter("CHIRP"));
     }
 
     @Override
     public void onStop() {
         super.onStop();
         Debug.log(this, "onStop called - unbinding");
-        updatePlaylist = false;
         // wtf.  unbinding here throws an exception saying the service is already
         // unbound.  so... i guess i'll be leaking serviceconnections
         //doUnbindService();
+        unregisterReceiver(nowPlayingReceiver);
     }
     
     /*private void setupNotification() {
@@ -134,32 +115,6 @@ public class Playing extends Activity implements OnClickListener,
        }
     }*/
 
-    private static final int CHIRP_ID = 1019;
-    private void setNotification(String title, String message) {
-        String ns = Context.NOTIFICATION_SERVICE;
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
-        CharSequence tickerText = message;
-        long when = System.currentTimeMillis();
-
-        int icon = R.drawable.icon;
-        Notification notification = new Notification(icon, tickerText, when);
-        notification.flags = Notification.FLAG_ONGOING_EVENT;
-        Context context = getApplicationContext();
-        CharSequence contentTitle = title;
-        CharSequence contentText = message;
-        Intent notificationIntent = new Intent(this, Playing.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-        notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
-
-        mNotificationManager.notify(CHIRP_ID, notification);
-    }
-
-    private void cancelNotification() {
-        String ns = Context.NOTIFICATION_SERVICE;
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
-        mNotificationManager.cancel(CHIRP_ID);
-    }
 
     private void setupPlaybackListeners() {
         playbackService.setOnPlaybackStartedListener(this);
@@ -247,24 +202,34 @@ public class Playing extends Activity implements OnClickListener,
         recentlyPlayedTextView.setText(Html.fromHtml(recentlyPlayedContent));	  	    	
 	}
 
-    // ng: not sure what the point of this broadcast receiver was
-	/*private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
+    /* 
+     *  this broadcast receiver gets data from the service to update the ui
+     */
+	private BroadcastReceiver nowPlayingReceiver = new BroadcastReceiver () {
 	    @Override
-	    public void onReceive(Context arg0, Intent intent) {
-	      Debug.log(this, "onReceive called");	
-	    }
-	};*/
-
-    private BroadcastReceiver headphoneReceiver = new BroadcastReceiver() {
-        @Override
         public void onReceive(Context arg0, Intent intent) {
-            Debug.log(this, "headphone broadcast message received");
-            if(intent.getAction().equalsIgnoreCase(Intent.ACTION_HEADSET_PLUG)) {
-                String data = intent.getDataString();
-                Debug.log(this, "data: " + data);
+            String json = intent.getStringExtra("playlist");
+            playlist = new LinkedList<Track>();
+            try {
+                JSONObject j = new JSONObject(json);
+                Track t = new Track(new JSONObject(json).getJSONObject("now_playing"));
+                playlist.add(t);
+                JSONArray previous = new JSONObject(json).getJSONArray("recently_played");
+
+                t = new Track(previous.getJSONObject(0));
+                playlist.add(t);
+                t = new Track(previous.getJSONObject(1));
+                playlist.add(t);
+                t = new Track(previous.getJSONObject(2));
+                playlist.add(t);
+                updateCurrentlyPlaying(playlist);
+            } catch (Exception e) {
+                Debug.log(this, "Error parsing now_playing: " + e.toString());
             }
-        }
-    };
+
+        };
+        };
+
 	
     public void onResume() {
         super.onResume();
@@ -281,7 +246,7 @@ public class Playing extends Activity implements OnClickListener,
 	public void onPlaybackStopped() {
 		runOnUiThread(new Runnable() {
 		    public void run() {
-                cancelNotification();
+                //cancelNotification();
 				findViewById(R.id.play_button).setEnabled(true);
 				findViewById(R.id.stop_button).setEnabled(false);
                 playStatus.setText("Stopped");
@@ -294,8 +259,8 @@ public class Playing extends Activity implements OnClickListener,
 	public void onPlaybackStarted() {
 		runOnUiThread(new Runnable() {
 		    public void run() {
-                Track t = playlist.get(0);
-                setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
+                //Track t = playlist.get(0);
+                //setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
                 findViewById(R.id.stop_button).setEnabled(true);
                 playStatus.setText("Playback started");
 				Debug.log(this, "playback started");
@@ -303,48 +268,5 @@ public class Playing extends Activity implements OnClickListener,
 		});
 	}    
 
-    private class GetPlaylistTask extends AsyncTask<Void, Integer, Boolean>
-    {
-        private boolean result = false;
-
-        protected Boolean doInBackground(Void... no) {
-            BufferedReader in = null;
-            Boolean result = false;
-            try {
-                String str = Request.sendRequest();
-                result = true;
-                Track t = new Track(new JSONObject(str).getJSONObject("now_playing"));
-                playlist = new LinkedList<Track>();
-                playlist.add(t);
-
-                JSONArray previous = new JSONObject(str).getJSONArray("recently_played");
-
-                t = new Track(previous.getJSONObject(0));
-                playlist.add(t);
-                t = new Track(previous.getJSONObject(1));
-                playlist.add(t);
-                t = new Track(previous.getJSONObject(2));
-                playlist.add(t);
-            } catch (Exception e) {
-                Debug.log(this, "Exception getting playlist: " + e.toString());
-                result = false;
-            } finally {
-            }
-            return result;
-        }
-
-        protected void onPostExecute(Boolean result) {
-            Debug.log(this, "Finished getting playlist");
-            if(!result) {
-                Debug.log(this, "Retrieving playlist failed");
-            } else {
-                updateCurrentlyPlaying(playlist);
-            }
-            Debug.log(this, "Next playlist update in 20 seconds");
-            Track t = playlist.get(0);
-            setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
-            handler.postDelayed(mUpdateTask, 20000);
-        }
-    }
     
 }
