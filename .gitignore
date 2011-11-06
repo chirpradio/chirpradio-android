@@ -19,3 +19,5 @@
 # machine-specific build properties
 local.properties
 
+#vi temp files
+*.swp

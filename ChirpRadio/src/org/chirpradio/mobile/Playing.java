@@ -32,8 +32,6 @@ import android.os.SystemClock;
 import android.text.Html;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.SeekBar;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.app.NotificationManager;
 import android.app.Notification;
@@ -43,9 +41,10 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.text.ParseException;
+import android.os.Handler;
 
 public class Playing extends Activity implements OnClickListener, 
-        OnSeekBarChangeListener, OnPlaybackStartedListener, OnPlaybackStoppedListener {
+        OnPlaybackStartedListener, OnPlaybackStoppedListener {
 
 	public final static String ACTION_NOW_PLAYING_CHANGED = "org.chirpradio.mobile.TRACK_CHANGED";
 	
@@ -60,40 +59,36 @@ public class Playing extends Activity implements OnClickListener,
     private TextView playStatus;
     private LinkedList<Track> playlist;
 
+    private Handler handler;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.playing);
         
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        setAudioLevel(80);
-        
         doBindService();
-        setupUICallbacks();
         setupNotification();
         findViewById(R.id.stop_button).setEnabled(false);
         
 		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
 		recentlyPlayedTextView = (TextView) findViewById(R.id.previous);
         playStatus = (TextView)findViewById(R.id.play_status);
-
-        playlist = new LinkedList<Track>();
-        new GetPlaylistTask().execute();
-    }
-    
-    private void setupUICallbacks() {
         playButton = findViewById(R.id.play_button);
         playButton.setOnClickListener(this);
         stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(this);
-        
-        //SeekBar seekBar = (SeekBar) findViewById(R.id.volume_seek_bar);
-        //seekBar.setOnSeekBarChangeListener(this);
-        int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int progress = (int) Math.ceil(volume * 100.0 / max);
-        //seekBar.setProgress(progress);
+
+        handler = new Handler();
+        handler.post(mUpdateTask);
     }
+
+    // handles updating the get playlist task
+    private Runnable mUpdateTask = new Runnable() {
+        public void run() {
+            Debug.log(this, "updating playlist from timer");
+            new GetPlaylistTask().execute();
+        }
+    };
     
     private void setupNotification() {
         try {
@@ -190,7 +185,7 @@ public class Playing extends Activity implements OnClickListener,
 		switch(v.getId()) {
 		case R.id.play_button:
             playStatus.setText("Bufferring Audio");
-            setNotification("CHIRPRadio.org", "Playing");
+            //setNotification("CHIRPRadio.org", "Playing");
 			playbackService.start();
 			v.setEnabled(false);
             stopButton.setEnabled(true);
@@ -219,7 +214,6 @@ public class Playing extends Activity implements OnClickListener,
 
 		for (int i = 1; i < tracks.size(); i++) {
 			Track recentTrack = tracks.get(i);
-            Debug.log(this, "recent track : " + recentTrack.getTrack());
 			recentlyPlayedContent += "<b>" + recentTrack.getArtist() + "</b>" + " - " + recentTrack.getTrack() + " <i>from " + 
 			recentTrack.getRelease() + " (" + recentTrack.getLabel() + ")" + "</i>";				
 			if (i < tracks.size()-1) {
@@ -274,7 +268,6 @@ public class Playing extends Activity implements OnClickListener,
 		});
 	}    
 
-
     private class GetPlaylistTask extends AsyncTask<Void, Integer, Boolean>
     {
         private boolean result = false;
@@ -312,7 +305,11 @@ public class Playing extends Activity implements OnClickListener,
             } else {
                 updateCurrentlyPlaying(playlist);
             }
+            Debug.log(this, "Next playlist update in 20 seconds");
+            Track t = playlist.get(0);
+            setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
+            handler.postDelayed(mUpdateTask, 20000);
         }
     }
-
-        }
+    
+}

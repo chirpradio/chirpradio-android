@@ -13,6 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/**
+ * Class to encapsulate network requests.  Only handles GET requests since
+ * that's all chirp uses right now.  
+ *
+ * @author Nick Gamroth
+ */
+
 package org.chirpradio.mobile;
 
 import java.util.Hashtable;
