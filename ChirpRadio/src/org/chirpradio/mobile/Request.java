@@ -41,7 +41,7 @@ public class Request
         try {
             String reqStr = baseUrl + CURRENT_PLAYLIST + "?src=chirpradio-android";
             URL url = new URL(reqStr);
-            Debug.log("Request", "Requesting " + reqStr);
+            //Debug.log("Request", "Requesting " + reqStr);
             URLConnection conn = url.openConnection();
 
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));

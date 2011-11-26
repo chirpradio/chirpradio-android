@@ -47,17 +47,18 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<S
 	* asynchronous task are passed to this step
 	*/
     protected Hashtable<String, Serializable> doInBackground(Context... contexts) {
-		android.os.Debug.waitForDebugger();
+		/*android.os.Debug.waitForDebugger();
     	this.context = contexts[0];
     	Hashtable<String, Serializable> current_playlist = Track.getCurrentPlaylist();
-		return current_playlist;
+		return current_playlist;*/
+        return null;
     }
 
     /** onPostExecute() - invoked on the UI thread after the background computation finishes. The result 
      * of the background computation is passed to this step as a parameter.
      */
     protected void onPostExecute(Hashtable<String, Serializable> current_playlist) {
-	    int icon = R.drawable.icon;	
+/*	    int icon = R.drawable.icon;	
 	    long when = System.currentTimeMillis();
 	    
 		try {
@@ -78,7 +79,7 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<S
 			    /* Intent for the Playing UI */
 			    //IntentFilter intentFilter = new IntentFilter(Playing.ACTION_NOW_PLAYING_CHANGED);
 			    //Intent intent = new Intent(context, Playing.class);	
-			    Intent intent = new Intent(Playing.ACTION_NOW_PLAYING_CHANGED);
+		/*	    Intent intent = new Intent(Playing.ACTION_NOW_PLAYING_CHANGED);
 			    intent.putExtra("now_playing", now_playing);
 				ArrayList<Track> recently_played = (ArrayList<Track>)current_playlist.get("recently_played");
 				for (int i = 0; i < 3; ++i) {
@@ -88,7 +89,7 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<S
 			    context.sendBroadcast(intent);
 			   	
 			    /* Intent for the Notification area */
-			    Intent notificationIntent = new Intent(context, Playing.class);
+		/*	    Intent notificationIntent = new Intent(context, Playing.class);
 			    notificationIntent.setAction(Intent.ACTION_VIEW);
 			    notificationIntent.addCategory(Intent.CATEGORY_DEFAULT);
 			    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -105,7 +106,7 @@ public class NotificationUpdateTask extends AsyncTask<Context, Void, Hashtable<S
 			}
 		} catch (Exception e) {
 	        Log.e(LOG_TAG, "", e);
-		}
+		}*/
 
     }
 }

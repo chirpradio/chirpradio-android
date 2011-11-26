@@ -176,6 +176,13 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 			Debug.log(this, "start");
 			mediaPlayer.start();
 		} else {
+            // make sure we get to the newest part of the stream
+            mediaPlayer.reset();
+            try {
+                mediaPlayer.setDataSource(STREAM_URL);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Debug.log(this, "start, but not prepared");
 			if (streamProxy != null) {
     	        streamProxy.start();

@@ -6,29 +6,15 @@
     android:background="@drawable/background"   
     android:paddingTop="120dip" 
     >
-
-	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    >
-		<Button
-			android:text="Play"
-			android:id="@+id/play_button"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
-		/>
-	
-		<Button
-			android:text="Stop"
-			android:id="@+id/stop_button"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:layout_weight="1"
-		/>
-	</LinearLayout>
-
+    <ImageButton
+        android:src="@drawable/play"
+        android:id="@+id/play_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center|center_horizontal"
+        android:layout_centerHorizontal="true"
+        />
 	<TextView 
 		android:background="@drawable/rounded_edges"
 		android:id="@+id/now_playing"

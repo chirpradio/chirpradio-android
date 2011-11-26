@@ -44,6 +44,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.app.ProgressDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.widget.ImageButton;
 
 public class Playing extends Activity implements OnClickListener, 
         OnPlaybackStartedListener, OnPlaybackStoppedListener {
@@ -57,8 +58,7 @@ public class Playing extends Activity implements OnClickListener,
 	private AudioManager audioManager;
 	private TextView nowPlayingTextView;
     private TextView recentlyPlayedTextView;
-    private View playButton;
-    private View stopButton;
+    private ImageButton playButton;
     private LinkedList<Track> playlist;
     private ProgressDialog progress;
 
@@ -69,16 +69,12 @@ public class Playing extends Activity implements OnClickListener,
         
         //doBindService();
         //setupNotification();
-        findViewById(R.id.stop_button).setEnabled(false);
         
 		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
 		recentlyPlayedTextView = (TextView) findViewById(R.id.previous);
         recentlyPlayedTextView.setMovementMethod(new ScrollingMovementMethod());
-        playButton = findViewById(R.id.play_button);
+        playButton = (ImageButton)findViewById(R.id.play_button);
         playButton.setOnClickListener(this);
-        stopButton = findViewById(R.id.stop_button);
-        stopButton.setOnClickListener(this);
-
     }
 
     @Override
@@ -143,11 +139,15 @@ public class Playing extends Activity implements OnClickListener,
                     setupPlaybackListeners();
                     if(playbackService != null) {
                         if(playbackService.isPlaying()) {
-                            playButton.setEnabled(false);
-                            stopButton.setEnabled(true);
+                            Debug.log(this, "changing button to stop icon");
+                            playButton.setImageResource(R.drawable.stop);
+                            //playButton.setEnabled(false);
+                            //stopButton.setEnabled(true);
                         } else {
-                            playButton.setEnabled(true);
-                            stopButton.setEnabled(false);
+                            Debug.log(this, "changing button to play icon");
+                            playButton.setImageResource(R.drawable.play);
+                            //playButton.setEnabled(true);
+                            //stopButton.setEnabled(false);
                         }
                     } else {
                         Debug.log(this, "playbackService is null in onServiceConnected");
@@ -185,15 +185,16 @@ public class Playing extends Activity implements OnClickListener,
 	public void onClick(View v) {
 		switch(v.getId()) {
 		case R.id.play_button:
-            showDialog(PROGRESS_DIALOG);
-			playbackService.start();
-			v.setEnabled(false);
-            stopButton.setEnabled(true);
-			break;
-		case R.id.stop_button:
-			playbackService.stop();
-			v.setEnabled(false);
-            playButton.setEnabled(true);
+            if(playbackService.isPlaying()) {
+                // stop
+                playbackService.stop();
+                playButton.setImageResource(R.drawable.play);
+            } else {
+                // play 
+                playButton.setImageResource(R.drawable.stop);
+                showDialog(PROGRESS_DIALOG);
+                playbackService.start();
+            }
 			break;
 		}
 	}
@@ -272,7 +273,7 @@ public class Playing extends Activity implements OnClickListener,
 		    public void run() {
                 //cancelNotification();
 				findViewById(R.id.play_button).setEnabled(true);
-				findViewById(R.id.stop_button).setEnabled(false);
+				//findViewById(R.id.stop_button).setEnabled(false);
 				Debug.log(this, "playback stopped");
 		    }
 		});
@@ -285,7 +286,7 @@ public class Playing extends Activity implements OnClickListener,
 		    public void run() {
                 //Track t = playlist.get(0);
                 //setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
-                findViewById(R.id.stop_button).setEnabled(true);
+                //findViewById(R.id.stop_button).setEnabled(true);
 				Debug.log(this, "playback started");
 		    }
 		});
