@@ -168,6 +168,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 
 	
 	public synchronized void start() {
+        Debug.log(this, "start called"); 
 		if (isStopping) {
 			Debug.log(this, "still stopping");
 			return;
