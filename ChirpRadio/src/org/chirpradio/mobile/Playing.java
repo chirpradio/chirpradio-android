@@ -44,7 +44,8 @@ import android.text.method.ScrollingMovementMethod;
 import android.app.ProgressDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.widget.ImageButton;
+//import android.widget.ImageButton;
+import android.widget.Button;
 
 public class Playing extends Activity implements OnClickListener, 
         OnPlaybackStartedListener, OnPlaybackStoppedListener {
@@ -58,7 +59,8 @@ public class Playing extends Activity implements OnClickListener,
 	private AudioManager audioManager;
 	private TextView nowPlayingTextView;
     private TextView recentlyPlayedTextView;
-    private ImageButton playButton;
+    //private ImageButton playButton;
+    private Button playButton;
     private LinkedList<Track> playlist;
     private ProgressDialog progress;
 
@@ -73,7 +75,8 @@ public class Playing extends Activity implements OnClickListener,
 		nowPlayingTextView = (TextView) findViewById(R.id.now_playing);	
 		recentlyPlayedTextView = (TextView) findViewById(R.id.previous);
         recentlyPlayedTextView.setMovementMethod(new ScrollingMovementMethod());
-        playButton = (ImageButton)findViewById(R.id.play_button);
+        //playButton = (ImageButton)findViewById(R.id.play_button);
+        playButton = (Button)findViewById(R.id.play_button);
         playButton.setOnClickListener(this);
     }
 
@@ -140,12 +143,14 @@ public class Playing extends Activity implements OnClickListener,
                     if(playbackService != null) {
                         if(playbackService.isPlaying()) {
                             Debug.log(this, "changing button to stop icon");
-                            playButton.setImageResource(R.drawable.stop);
+                            //playButton.setImageResource(R.drawable.stop);
+                            playButton.setText("Stop");
                             //playButton.setEnabled(false);
                             //stopButton.setEnabled(true);
                         } else {
                             Debug.log(this, "changing button to play icon");
-                            playButton.setImageResource(R.drawable.play);
+                            //playButton.setImageResource(R.drawable.play);
+                            playButton.setText("Play");
                             //playButton.setEnabled(true);
                             //stopButton.setEnabled(false);
                         }
@@ -188,10 +193,12 @@ public class Playing extends Activity implements OnClickListener,
             if(playbackService.isPlaying()) {
                 // stop
                 playbackService.stop();
-                playButton.setImageResource(R.drawable.play);
+                //playButton.setImageResource(R.drawable.play);
+                playButton.setText("Play");
             } else {
                 // play 
-                playButton.setImageResource(R.drawable.stop);
+                //playButton.setImageResource(R.drawable.stop);
+                playButton.setText("Stop");
                 showDialog(PROGRESS_DIALOG);
                 playbackService.start();
             }
