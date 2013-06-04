@@ -47,8 +47,9 @@ import org.npr.android.news.StreamProxy;
 
 public class PlaybackService extends Service implements OnPreparedListener, OnErrorListener, OnCompletionListener {
 
-	private static final String STREAM_URL = "http://www.live365.com/play/chirpradio";
-	
+	// This URL redirects to the real stream URL.
+	private static final String STREAM_URL = "http://chirpradio.org/stream";
+
 	private MediaPlayer mediaPlayer;
 	private StreamProxy streamProxy;
 	private Boolean isPrepared = false;
