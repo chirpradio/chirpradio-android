@@ -1,4 +1,4 @@
-// Copyright 2011 The Chicago Independent Radio Project 
+// Copyright 2011 The Chicago Independent Radio Project
 // Copyright 2010 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,8 +47,9 @@ import org.npr.android.news.StreamProxy;
 
 public class PlaybackService extends Service implements OnPreparedListener, OnErrorListener, OnCompletionListener {
 
-	private static final String STREAM_URL = "http://www.live365.com/play/chirpradio";
-	
+	// This URL redirects to the real stream URL.
+	private static final String STREAM_URL = "http://chirpradio.org/stream";
+
 	private MediaPlayer mediaPlayer;
 	private StreamProxy streamProxy;
 	private Boolean isPrepared = false;
@@ -60,22 +61,22 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     private Handler handler;
     private Boolean updatePlaylist;
     private Boolean headphonesInUse;
-	
+
 	private PhoneStateListener phoneStateListener;
-	
+
 	private OnPlaybackStartedListener onPlaybackStartedListener;
-	private OnPlaybackStoppedListener onPlaybackStoppedListener;	
-	
-	
+	private OnPlaybackStoppedListener onPlaybackStoppedListener;
+
+
 	//	Service setup
 	//
-	
+
     public class PlaybackBinder extends Binder {
     	PlaybackService getService() {
             return PlaybackService.this;
         }
     }
-    
+
 	@Override
 	public IBinder onBind(Intent intent) {
         Debug.log(this, "Binding to service");
@@ -95,7 +96,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
     	mediaPlayer.setOnPreparedListener(this);
     	mediaPlayer.setOnErrorListener(this);
     	mediaPlayer.setOnCompletionListener(this);
-    	
+
     	String playbackUrl;
         playbackUrl = STREAM_URL;
 
@@ -119,7 +120,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
         return isPlaying;
     }
 
-    
+
     // Start on pre-2.0 systems
     @Override
     public void onStart(Intent intent, int startId) {
@@ -140,7 +141,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
         // stopped, so return sticky.
         return START_STICKY;
     }
-    
+
     @Override
     public void onDestroy() {
     	Debug.log(this, "DESTROYED");
@@ -153,7 +154,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
         Debug.log(this, "Notifying UI of playlist update");
         try {
             Track t = new Track(new JSONObject(playlist).getJSONObject("now_playing"));
-            if(isPlaying)   
+            if(isPlaying)
                 setNotification("CHIRP Radio", t.getArtist() + " - " + t.getTrack());
         } catch (Exception e) {
             Debug.log(this, playlist);
@@ -166,9 +167,9 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
         sendBroadcast(intent);
     }
 
-	
+
 	public synchronized void start() {
-        Debug.log(this, "start called"); 
+        Debug.log(this, "start called");
 		if (isStopping) {
 			Debug.log(this, "still stopping");
 			return;
@@ -194,7 +195,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 			return;
 		}
 	}
-	
+
 	public synchronized void stop() {
         if(isPreparing) {
             stopAfterPrepared = true;
@@ -229,7 +230,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 
 	//	MediaPlayer callbacks
 	//
-	
+
 	@Override
 	public void onPrepared(MediaPlayer mp) {
         Debug.log(this, "prepared, starting media player");
@@ -248,7 +249,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
             }
         }
 	}
-	
+
 	@Override
 	public boolean onError(MediaPlayer mp, int what, int extra) {
 		Debug.log(this, "ERROR! what: " + what + " extra: " + extra);
@@ -268,11 +269,11 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 	public void setOnPlaybackStoppedListener(OnPlaybackStoppedListener listener) {
 		onPlaybackStoppedListener = listener;
 	}
-	
+
 	public void setOnPlaybackStartedListener(OnPlaybackStartedListener listener) {
 		onPlaybackStartedListener = listener;
 	}
-	
+
     private static final int CHIRP_ID = 1019;
     private void setNotification(String title, String message) {
         String ns = Context.NOTIFICATION_SERVICE;
@@ -299,7 +300,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(ns);
         mNotificationManager.cancel(CHIRP_ID);
     }
-	
+
 	private void setupTelephonyHooks() {
 		TelephonyManager telephonyManager = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
 
@@ -328,7 +329,7 @@ public class PlaybackService extends Service implements OnPreparedListener, OnEr
 		};
 
 		telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-	}	
+	}
 
     private BroadcastReceiver headphoneReceiver = new BroadcastReceiver() {
         @Override
