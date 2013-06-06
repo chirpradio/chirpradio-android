@@ -1,7 +1,11 @@
 .DS_Store
 */.settings/*
+*/.idea/*
 .classpath
 .project
+*/gen/*
+*~
+*/classes/*
 
 # built application files
 *.apk
