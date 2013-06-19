@@ -12,6 +12,12 @@ You can find the latest stable release in the Android Market. We publish
 development versions on
 [our github page](http://chirpradio.github.com/chirpradio-android/)
 
+## Publish
+
+When creating a new APK to submit to Google Play, you *must* sign it with
+`chirp.keystore` contained in this repo. Make sure you update all artifacts
+in the `Published` folder after publishing.
+
 ## License
 
 All code is available for use under the
